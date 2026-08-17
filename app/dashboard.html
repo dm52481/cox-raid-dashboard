@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoX Raid Tracker Dashboard</title>
+<style>
+:root{color-scheme:dark;--bg:#0e1117;--panel:#161b22;--panel2:#1f2630;--text:#e6edf3;--muted:#9da7b3;--border:#30363d;--accent:#d9b64c;--green:#7ee787;--cyan:#56d4dd;--danger:#ff7b72;--purple:#c297ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1600px;margin:auto;padding:24px}.head{display:flex;justify-content:space-between;gap:20px}.sub,.source,.status{color:var(--muted)}
+h1{font-size:26px;margin:0 0 4px}.live{display:flex;align-items:center;gap:7px;color:var(--green)}.dot{height:9px;width:9px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
+.metrics{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:14px 0 18px}.metric,.filters{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.metric{padding:14px}.metric .label{color:var(--muted);font-size:12px}.metric .value{font-size:22px;font-weight:700}
+.filters{padding:14px;display:grid;grid-template-columns:2fr repeat(5,minmax(130px,1fr));gap:10px;align-items:end}
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,select,button{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
+button{cursor:pointer;font-weight:600}.check{display:flex;align-items:center;gap:8px;height:38px}.check input{width:auto}.actions{display:flex;gap:8px;margin:10px 0 12px;align-items:center}.actions button{width:auto}.status{margin-left:auto}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--panel)}table{border-collapse:collapse;width:100%;min-width:1120px;table-layout:auto}
+th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;text-align:left;white-space:nowrap}th{position:sticky;top:0;background:#1b212b;cursor:pointer}
+.num{text-align:right}.purple{color:var(--purple);font-weight:700}.kit{color:var(--green);font-weight:700}.dust{color:var(--cyan);font-weight:700}.muted{color:var(--muted)}
+.loot,.specials{white-space:normal;overflow-wrap:anywhere}.loot{min-width:180px;max-width:300px}.specials{min-width:150px;max-width:220px}.receiver{width:12ch;min-width:12ch;max-width:12ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pill{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:1px 7px;font-size:12px}.error{color:var(--danger)}
+
+.stats-section{margin:18px 0}
+.stats-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 10px}
+.stats-title h2{font-size:18px;margin:0}
+.stats-note{color:var(--muted);font-size:12px}
+.stats-grid{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:10px}
+.stat-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
+.stat-panel h3{font-size:14px;margin:0 0 10px}
+.fast-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed}
+.fast-table th,.fast-table td{padding:6px 7px;font-size:12px;border-bottom:1px solid var(--border)}
+.fast-table th{position:static;background:transparent;color:var(--muted);cursor:default}
+.fast-table th:hover{color:var(--muted)}
+.fast-table td:nth-child(2),.fast-table td:nth-child(3){text-align:right}
+.stat-big{font-size:28px;font-weight:700;line-height:1.1;margin:4px 0}
+.stat-sub{color:var(--muted);font-size:12px;line-height:1.45}
+.stat-break{height:1px;background:var(--border);margin:12px 0}
+.stat-row{display:flex;justify-content:space-between;gap:12px;margin:6px 0}
+.stat-row .k{color:var(--muted)}
+.stat-row .v{font-weight:700;text-align:right}
+.good{color:var(--green)}
+@media(max-width:1100px){.stats-grid{grid-template-columns:1fr}.fast-table{table-layout:auto}}
+
+
+.player-loot-panel{margin-top:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px}
+.player-loot-panel h3{font-size:14px;margin:0 0 10px}
+.player-loot-table{width:100%;min-width:0;border-collapse:collapse;table-layout:auto}
+.player-loot-table th,.player-loot-table td{padding:7px 9px;border-bottom:1px solid var(--border);font-size:13px}
+.player-loot-table th{position:static;background:transparent;color:var(--muted);cursor:pointer}
+.player-loot-table th:hover{color:var(--text)}
+.player-loot-table th:not(:first-child),.player-loot-table td:not(:first-child){text-align:right}
+.player-loot-table .player-name{text-align:left;max-width:12ch;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+
+.stats-mode-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}.period-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
+.period-btn{width:auto;padding:7px 11px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+.rolling-mode-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}.period-btn.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.preview-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}
+.preview-panel.wide{grid-column:span 2}.preview-panel.full{grid-column:1/-1}
+.preview-panel h3{font-size:14px;margin:0 0 10px}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mini-card{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:10px}.mini-card .label{font-size:11px;color:var(--muted)}.mini-card .value{font-size:20px;font-weight:700;margin-top:2px}
+.small-table{width:100%;min-width:0;border-collapse:collapse;table-layout:auto}.small-table th,.small-table td{padding:6px 7px;border-bottom:1px solid var(--border);font-size:12px}.small-table th{position:static;background:transparent;color:var(--muted);cursor:default}.small-table td:not(:first-child),.small-table th:not(:first-child){text-align:right}
+.bar-row{display:grid;grid-template-columns:minmax(120px,1fr) 2fr 42px;gap:8px;align-items:center;margin:6px 0}.bar-track{height:8px;background:var(--panel2);border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:var(--accent);border-radius:99px}
+.timeline{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.timeline-item{min-width:180px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px}.timeline-item .item{color:var(--purple);font-weight:700}.timeline-item .meta{font-size:11px;color:var(--muted);margin-top:3px}
+@media(max-width:1150px){.preview-grid{grid-template-columns:1fr 1fr}.preview-panel.wide{grid-column:span 2}}@media(max-width:800px){.preview-grid{grid-template-columns:1fr}.preview-panel.wide,.preview-panel.full{grid-column:span 1}}
+
+
+.rolling-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 9px}
+.rolling-tab{width:auto;padding:5px 9px;border-radius:999px;font-size:11px;color:var(--muted)}
+.rolling-tab.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.loot-icon{width:28px;height:28px;object-fit:contain;vertical-align:middle;image-rendering:auto;flex:0 0 28px}
+.loot-icon.small{width:22px;height:22px;flex-basis:22px}
+.loot-with-icon{display:flex;align-items:center;gap:7px;min-width:0}
+.loot-with-icon span{min-width:0}
+.history-wrap{max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:9px}
+.history-table{width:100%;min-width:760px;border-collapse:collapse}
+.history-table th,.history-table td{padding:7px 8px;border-bottom:1px solid var(--border);font-size:12px;white-space:nowrap}
+.history-table th{position:sticky;top:0;background:#1b212b;color:var(--muted);z-index:1;cursor:default}
+.history-table th:hover{color:var(--muted)}
+.history-table td.num,.history-table th.num{text-align:right}
+.history-table .history-item{white-space:normal;min-width:175px}
+.icon-fallback{display:none}
+
+
+.shot-btn{width:auto;padding:4px 8px;font-size:12px;white-space:nowrap}
+.shot-none{color:var(--muted);font-size:12px}
+.shot-modal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:28px;z-index:9999}
+.shot-modal.open{display:flex}
+.shot-dialog{position:relative;max-width:min(1200px,96vw);max-height:94vh;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 20px 70px rgba(0,0,0,.5)}
+.shot-dialog img{display:block;max-width:calc(96vw - 24px);max-height:calc(94vh - 70px);object-fit:contain;border-radius:7px}
+.shot-close{position:absolute;right:10px;top:10px;width:auto;padding:5px 9px;z-index:2;background:rgba(14,17,23,.88)}
+.shot-caption{padding:8px 2px 0;color:var(--muted);font-size:12px}
+
+
+.shot-diagnostics{margin-top:5px;color:var(--muted);font-size:11px}
+.shot-diagnostics.warn{color:#e3b341}
+
+.setup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:24px;z-index:10000}.setup-overlay.open{display:flex}.setup-card{width:min(560px,94vw);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 25px 80px rgba(0,0,0,.55)}.setup-card h2{margin:0 0 8px;font-size:20px}.setup-card p{color:var(--muted);margin:6px 0 14px}.setup-actions{display:flex;gap:8px;flex-wrap:wrap}.setup-actions button{width:auto}.account-list{display:grid;gap:7px;max-height:320px;overflow:auto;margin:10px 0}.account-choice{text-align:left;width:100%}.config-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.config-actions button{width:auto;padding:5px 8px;font-size:11px}
+.account-picker-label{display:flex;align-items:center;gap:6px;margin:0;color:var(--muted);font-size:11px}.account-picker-label select{width:auto;min-width:150px;padding:5px 8px;font-size:12px}
+
+.first-notice{position:fixed;inset:0;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:24px;z-index:11000}
+.first-notice.open{display:flex}
+.first-notice-card{width:min(610px,95vw);background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:22px;box-shadow:0 25px 90px rgba(0,0,0,.58)}
+.first-notice-card h2{margin:0 0 10px;font-size:21px}
+.first-notice-card p,.first-notice-card li{color:var(--muted);line-height:1.5}
+.first-notice-card strong{color:var(--text)}
+.first-notice-actions{display:flex;justify-content:flex-end;margin-top:18px}
+.first-notice-actions button{width:auto;padding:8px 15px}
+
+@media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="head"><div><h1>Chambers of Xeric Raid Dashboard</h1><div class="sub">Live data from your local RuneLite raid tracker log.</div><div class="source" id="source">Loading source…</div><div class="shot-diagnostics" id="shotDiagnostics"></div><div class="config-actions">
+<label class="account-picker-label">Account
+<select id="accountPicker"><option value="">Select account…</option></select>
+</label>
+<button id="changeRoot" type="button">Change .runelite Folder</button>
+</div></div><div class="live"><span class="dot"></span><span id="liveText">Loading…</span></div></div>
+
+<section class="metrics">
+<div class="metric"><div class="label">Visible raids</div><div class="value" id="mRaids">—</div></div>
+<div class="metric"><div class="label">Special loot events</div><div class="value" id="mSpecial">—</div></div>
+<div class="metric"><div class="label">Special loot value</div><div class="value" id="mValue">—</div></div>
+<div class="metric"><div class="label">Regular loot value</div><div class="value" id="mRegularValue">—</div></div>
+<div class="metric"><div class="label">Avg raid time</div><div class="value" id="mTime">—</div></div>
+<div class="metric"><div class="label">Avg personal points</div><div class="value" id="mPoints">—</div></div>
+</section>
+
+
+<section class="stats-section">
+  <div class="stats-title"><h2>Stats</h2><div class="stats-note">Purple = CoX unique only; kit/dust excluded</div></div>
+  <div class="stats-mode-bar">
+    <button class="period-btn active" data-stats-mode="all" type="button">All</button>
+    <button class="period-btn" data-stats-mode="cm" type="button">CM</button>
+    <button class="period-btn" data-stats-mode="reg" type="button">Regular</button>
+  </div>
+  <div class="period-bar">
+    <button class="period-btn active" data-period="all">All Time</button>
+    <button class="period-btn" data-period="30d">Last 30 Days</button>
+    <button class="period-btn" data-period="3m">Last 3 Months</button>
+    <button class="period-btn" data-period="6m">Last 6 Months</button>
+    <button class="period-btn" data-period="50">Last 50 Raids</button>
+    <button class="period-btn" data-period="100">Last 100 Raids</button>
+  </div>
+
+  <div class="preview-grid">
+    <div class="preview-panel">
+      <h3>Purple luck</h3>
+      <div class="mini-grid">
+        <div class="mini-card">
+          <div class="label">Personal</div><div class="value" id="luckPersonal">—</div>
+          <div class="stat-sub" id="luckPersonalDetail">—</div>
+          <div class="stat-sub" id="luckPersonalPoints">—</div>
+        </div>
+        <div class="mini-card">
+          <div class="label">Overall</div><div class="value" id="luckOverall">—</div>
+          <div class="stat-sub" id="luckOverallDetail">—</div>
+          <div class="stat-sub" id="luckOverallPoints">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-panel">
+      <h3>Current personal dry streak</h3>
+      <div class="stat-row"><span class="k">Overall</span><span class="v" id="currentDryOverall">—</span></div>
+      <div class="stat-sub" id="currentDryOverallPts">—</div>
+      <div class="stat-break"></div>
+      <div class="stat-row"><span class="k">Solo</span><span class="v" id="currentDrySolo">—</span></div>
+      <div class="stat-sub" id="currentDrySoloPts">—</div>
+    </div>
+
+    <div class="preview-panel">
+      <h3>Longest points dry streak</h3>
+      <div class="stat-row"><span class="k">Overall</span><span class="v" id="pointsDryOverall">—</span></div>
+      <div class="stat-sub" id="pointsDryOverallRaids">—</div>
+      <div class="stat-break"></div>
+      <div class="stat-row"><span class="k">Solo</span><span class="v" id="pointsDrySolo">—</span></div>
+      <div class="stat-sub" id="pointsDrySoloRaids">—</div>
+    </div>
+
+    <div class="preview-panel wide">
+      <h3>Team-size performance</h3>
+      <table class="small-table"><thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Purples</th><th>Purple rate</th></tr></thead><tbody id="teamPerfBody"></tbody></table>
+    </div>
+
+    <div class="preview-panel">
+      <h3>Rolling performance</h3>
+      <div class="rolling-tabs">
+        <button class="rolling-tab active" data-rolling-size="all">Any size</button>
+        <button class="rolling-tab" data-rolling-size="1">1</button>
+        <button class="rolling-tab" data-rolling-size="2">2</button>
+        <button class="rolling-tab" data-rolling-size="3">3</button>
+        <button class="rolling-tab" data-rolling-size="4">4</button>
+        <button class="rolling-tab" data-rolling-size="5">5</button>
+      </div>
+      <table class="small-table"><thead><tr><th>Window</th><th>Avg time</th><th>Avg pts</th><th>Purples</th></tr></thead><tbody id="rollingBody"></tbody></table>
+    </div>
+
+    <div class="preview-panel">
+      <h3>Purple distribution</h3>
+      <div id="purpleDistribution"></div>
+    </div>
+
+    <div class="preview-panel full">
+      <h3>Purple history</h3>
+      <div class="history-wrap">
+        <table class="history-table">
+          <thead><tr><th></th><th>Date</th><th>Loot</th><th>Receiver</th><th class="num">KC</th><th class="num">Size</th><th>Mode</th><th class="num">Personal pts</th><th>Screenshot</th></tr></thead>
+          <tbody id="purpleHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="preview-panel full">
+      <h3>Special loot by player</h3>
+      <table class="player-loot-table"><thead><tr><th>Player</th><th>Purples</th><th>Kits</th><th>Dust</th><th>Total special</th></tr></thead><tbody id="playerLootBody"></tbody></table>
+    </div>
+  </div>
+</section>
+
+<section class="filters">
+<div><label for="search">Search loot / player / KC</label><input id="search" placeholder="e.g. claws, player name, 250"></div>
+<div><label for="player">Special loot receiver</label><select id="player"><option value="">All players</option></select></div>
+<div><label for="special">Special loot</label><select id="special"><option value="">All loot</option></select></div>
+<div><label for="size">Team size</label><select id="size"><option value="">All sizes</option></select></div>
+<div><label for="mode">Mode</label><select id="mode"><option value="">All modes</option><option value="cm">Challenge Mode</option><option value="reg">Regular</option></select></div>
+<div><label>Special loot only</label><div class="check"><input id="specialOnly" type="checkbox"><span>Has special loot</span></div></div>
+<div><label for="dateFrom">From date</label><input id="dateFrom" type="date"></div>
+<div><label for="dateTo">To date</label><input id="dateTo" type="date"></div>
+</section>
+
+<div class="actions">
+<button id="refresh">Refresh now</button>
+<button id="reset">Reset filters</button>
+<button id="csv">Export filtered CSV</button>
+<div class="status" id="status"></div>
+</div>
+
+<div id="error" class="error" hidden></div>
+<div class="tablewrap"><table><thead><tr>
+<th data-key="date">Date</th><th data-key="kc" class="num">KC</th><th data-key="teamSize" class="num">Size</th><th data-key="challengeMode">Mode</th>
+<th data-key="raidTime" class="num">Raid time</th><th data-key="totalPoints" class="num">Team pts</th><th data-key="personalPoints" class="num">Personal pts</th>
+<th data-key="percentage" class="num">Personal %</th><th data-key="personalDeaths" class="num">Deaths</th><th>Special loot</th><th class="receiver">Receiver</th>
+<th data-key="specialLootValue" class="num">Special value</th><th data-key="regularLootValue" class="num">Regular value</th><th>Regular loot</th>
+</tr></thead><tbody id="body"></tbody></table></div>
+</div>
+
+
+
+<div class="first-notice" id="firstNotice" aria-hidden="true">
+  <div class="first-notice-card">
+    <h2>Before you use CoX Raid Dashboard</h2>
+    <p>This dashboard runs on your computer and reads RuneLite data locally.</p>
+    <ul>
+      <li>It reads your selected <strong>.runelite</strong> CoX raid log and Boss Kills screenshots.</li>
+      <li>It serves the dashboard only on <strong>127.0.0.1</strong>, which is your own computer.</li>
+      <li>Raid data and screenshots are <strong>not uploaded by this application</strong>.</li>
+      <li>Your selected RuneLite folder and screenshot account are saved locally under your Windows user profile.</li>
+      <li>The application does not modify your RuneLite raid log or screenshots.</li>
+      <li>The application is open source so its local-data behavior and release build process can be reviewed.</li>
+    </ul>
+    <div class="first-notice-actions">
+      <button id="acceptNotice" type="button">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="setup-overlay" id="setupOverlay"><div class="setup-card"><h2 id="setupTitle">Set up CoX Raid Dashboard</h2><p id="setupText"></p><div id="accountList" class="account-list"></div><div class="setup-actions"><button id="chooseRoot" type="button">Choose .runelite Folder</button><button id="setupCancel" type="button">Cancel</button></div></div></div><div class="shot-modal" id="shotModal" aria-hidden="true">
+  <div class="shot-dialog">
+    <button class="shot-close" id="shotClose" type="button">Close</button>
+    <img id="shotImage" alt="RuneLite valuable drop screenshot">
+    <div class="shot-caption" id="shotCaption"></div>
+  </div>
+</div>
+
+<script>
+let SETUP={};
+async function fetchSetup(){const r=await fetch('/api/setup?ts='+Date.now(),{cache:'no-store'});SETUP=await r.json();return SETUP}
+function hideSetup(){$('setupOverlay').classList.remove('open')}
+function populateAccountPicker(s){const p=$('accountPicker');p.innerHTML='<option value="">Select account…</option>';(s.accounts||[]).forEach(name=>p.add(new Option(name,name)));p.value=(s.accounts||[]).includes(s.account)?s.account:'';p.disabled=!(s.accounts||[]).length}
+function showSetup(s){SETUP=s;$('accountList').innerHTML='';$('setupTitle').textContent='Select your RuneLite folder';$('setupText').textContent='The default .runelite folder was not found under your Windows user profile. Choose the .runelite folder you want this dashboard to use.';$('setupOverlay').classList.add('open')}
+async function chooseRoot(){const r=await fetch('/api/choose-runelite?ts='+Date.now(),{cache:'no-store'});const s=await r.json();SETUP=s;if(s.cancelled){showSetup(s);return}populateAccountPicker(s);hideSetup();await loadData()}
+async function selectAccount(name){if(!name)return;const r=await fetch('/api/select-account?name='+encodeURIComponent(name),{cache:'no-store'});const s=await r.json();if(!r.ok){alert(s.error||'Unable to select account.');return}SETUP=s;populateAccountPicker(s);await loadData()}
+async function ensureSetup(){const s=await fetchSetup();populateAccountPicker(s);if(!s.noticeAccepted){$("firstNotice").classList.add("open");$("firstNotice").setAttribute("aria-hidden","false");return false}if(s.needsRoot){showSetup(s);return false}return true}
+let DATA=[];const $=id=>document.getElementById(id);const state={sortKey:"date",sortDir:-1};const playerLootState={sortKey:"purples",sortDir:-1};let statsPeriod="all";let rollingTeamSize="all";let statsMode="all";
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function fmtNum(n){return Number.isFinite(+n)?Math.round(+n).toLocaleString():"—"}
+function fmtGp(n){if(!Number.isFinite(+n)||+n<=0)return"—";let v=+n;if(v>=1e9)return(v/1e9).toFixed(2)+"b";if(v>=1e6)return(v/1e6).toFixed(2)+"m";if(v>=1e3)return(v/1e3).toFixed(1)+"k";return Math.round(v).toLocaleString()}
+function fmtTime(s){if(!Number.isFinite(+s)||+s<0)return"—";s=Math.round(+s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function fmtDate(ms){return ms?new Date(ms).toLocaleString([],{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}
+function dateOnly(ms){const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function refill(id,vals,label){const el=$(id),old=el.value;el.innerHTML=`<option value="">${label}</option>`;[...new Set(vals.filter(v=>v!==null&&v!==undefined&&v!==""))].sort((a,b)=>typeof a==="number"?a-b:String(a).localeCompare(String(b))).forEach(v=>el.add(new Option(id==="size"?v+" player":v,v)));if([...el.options].some(o=>o.value===old))el.value=old}
+function populate(){const e=DATA.flatMap(r=>r.specialLootEntries||[]);refill("player",e.map(x=>x.receiver),"All players");refill("special",e.map(x=>x.name),"All loot");refill("size",DATA.map(r=>r.teamSize),"All sizes")}
+async function loadData(){try{if(!(await ensureSetup()))return;$("liveText").textContent="Refreshing…";const res=await fetch("/api/raids?ts="+Date.now(),{cache:"no-store"}),p=await res.json();if(!res.ok)throw new Error(p.error||"Unable to load");DATA=p.records||[];$("source").textContent=".runelite\\raid-data-tracker\\cox\\raid_tracker_data.log";
+    const si=p.screenshotInfo||{};
+    const account=(SETUP&&SETUP.account)||si.inferredAccount||"not selected";
+    const diag=`Screenshots: account ${account} · ${si.screenshotFolders||0} Boss Kills folder(s) · ${si.screenshotsIndexed||0} image(s) · ${si.screenshotsMatched||0}/${si.personalPurples||0} personal purples matched`;
+    $("shotDiagnostics").textContent=diag;
+    $("shotDiagnostics").classList.toggle("warn",(si.personalPurples||0)>0 && (si.screenshotsMatched||0)===0);
+    populate();renderStats();render();$("liveText").textContent="Live · updated "+new Date().toLocaleTimeString();$("error").hidden=true}catch(e){$("error").textContent=e.message;$("error").hidden=false;$("liveText").textContent="Data error"}}
+function filtered(){const q=$("search").value.trim().toLowerCase(),p=$("player").value,sp=$("special").value,sz=$("size").value,mode=$("mode").value,from=$("dateFrom").value,to=$("dateTo").value,only=$("specialOnly").checked;
+return DATA.filter(r=>{const e=r.specialLootEntries||[],hay=[r.kc,...e.flatMap(x=>[x.name,x.receiver]),...(r.lootList||[]).map(x=>x.name)].join(" ").toLowerCase();if(q&&!hay.includes(q))return false;if(p&&!e.some(x=>x.receiver===p))return false;if(sp&&!e.some(x=>x.name===sp))return false;if(sz&&String(r.teamSize)!==sz)return false;if(mode==="cm"&&!r.challengeMode)return false;if(mode==="reg"&&r.challengeMode)return false;if(only&&!e.length)return false;if(from&&dateOnly(r.date)<from)return false;if(to&&dateOnly(r.date)>to)return false;return true}).sort((a,b)=>{let av=a[state.sortKey],bv=b[state.sortKey];if(typeof av==="string"||typeof bv==="string")return String(av||"").localeCompare(String(bv||""))*state.sortDir;return((+av||0)-(+bv||0))*state.sortDir})}
+function specialHtml(e){return e.length?e.map(x=>`<div class="loot-with-icon ${x.kind==="kit"?"kit":x.kind==="dust"?"dust":"purple"}">${lootIconHtml(x.name,true)}<span>${esc(x.name)}</span></div>`).join(""):'<span class="muted">—</span>'}
+function receiverHtml(e){return e.length?e.map(x=>`<div>${esc(x.receiver||"—")}</div>`).join(""):'<span class="muted">—</span>'}
+
+function isPurpleEntry(x){return x && x.kind==="purple"}
+
+function raidHasPurple(r){
+  return (r.specialLootEntries||[]).some(isPurpleEntry);
+}
+
+function raidHasPersonalPurple(r){
+  return !!r.specialLootInOwnName && raidHasPurple(r);
+}
+
+function fastestRaid(teamSize, challengeMode){
+  return DATA
+    .filter(r=>+r.teamSize===teamSize && !!r.challengeMode===challengeMode && Number.isFinite(+r.raidTime) && +r.raidTime>0)
+    .sort((a,b)=>(+a.raidTime)-(+b.raidTime))[0] || null;
+}
+
+function dryStreak(records){
+  const raids=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));
+  let current=0,currentPoints=0,currentStart=null;
+  let best=0,bestPoints=0,bestStart=null,bestEnd=null;
+
+  for(const r of raids){
+    if(raidHasPersonalPurple(r)){
+      if(current>best){
+        best=current;
+        bestPoints=currentPoints;
+        bestStart=currentStart;
+        bestEnd=r;
+      }
+      current=0;
+      currentPoints=0;
+      currentStart=null;
+    }else{
+      if(current===0) currentStart=r;
+      current++;
+      currentPoints+=(+r.personalPoints||0);
+    }
+  }
+
+  // Current/open streak through the end of the log can itself be the longest.
+  if(current>best){
+    best=current;
+    bestPoints=currentPoints;
+    bestStart=currentStart;
+    bestEnd=null;
+  }
+
+  return {
+    count:best,
+    points:bestPoints,
+    start:bestStart,
+    end:bestEnd,
+    open:bestEnd===null && best>0
+  };
+}
+
+function dryDetail(s){
+  if(!s.count || !s.start) return "No dry streak recorded";
+  const startDate=new Date(s.start.date).toLocaleDateString();
+  if(s.open){
+    const last=DATA.length?[...DATA].sort((a,b)=>(+a.date||0)-(+b.date||0)).at(-1):null;
+    const endDate=last?new Date(last.date).toLocaleDateString():"current";
+    return `${startDate} → ${endDate} · current/open streak`;
+  }
+  const endDate=s.end?new Date(s.end.date).toLocaleDateString():"—";
+  return `${startDate} → ${endDate}`;
+}
+
+
+function playerLootStats(){
+  const map=new Map();
+
+  for(const r of DATA){
+    for(const x of (r.specialLootEntries||[])){
+      const player=(x.receiver||"").trim();
+      if(!player) continue;
+
+      if(!map.has(player)){
+        map.set(player,{player,purples:0,kits:0,dust:0,total:0});
+      }
+
+      const row=map.get(player);
+      if(x.kind==="purple") row.purples++;
+      else if(x.kind==="kit") row.kits++;
+      else if(x.kind==="dust") row.dust++;
+      row.total++;
+    }
+  }
+
+  const rows=[...map.values()];
+  const key=playerLootState.sortKey;
+  const dir=playerLootState.sortDir;
+
+  rows.sort((a,b)=>{
+    if(key==="player") return a.player.localeCompare(b.player)*dir;
+    const diff=(+a[key]||0)-(+b[key]||0);
+    return (diff!==0 ? diff : a.player.localeCompare(b.player))*dir;
+  });
+
+  return rows;
+}
+
+function renderPlayerLootStats(){
+  const rows=playerLootStats();
+
+  $("playerLootBody").innerHTML=rows.length
+    ? rows.map(r=>`<tr>
+        <td class="player-name" title="${esc(r.player)}">${esc(r.player)}</td>
+        <td>${fmtNum(r.purples)}</td>
+        <td class="kit">${fmtNum(r.kits)}</td>
+        <td class="dust">${fmtNum(r.dust)}</td>
+        <td>${fmtNum(r.total)}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="5" class="muted">No named special-loot receivers found.</td></tr>';
+}
+
+
+function wikiIconUrl(name){
+  // MediaWiki Special:Redirect/file avoids hard-coding hashed /images/ paths.
+  const file=(name||"").trim().replace(/ /g,"_")+".png";
+  return "https://oldschool.runescape.wiki/w/Special:Redirect/file/"+encodeURIComponent(file);
+}
+function lootIconHtml(name,small=false){
+  const cls=small?"loot-icon small":"loot-icon";
+  return `<img class="${cls}" src="${wikiIconUrl(name)}" alt="" title="${esc(name)}" loading="lazy" onerror="this.style.display='none'">`;
+}
+
+function screenshotCell(x){
+  if(!x || !x.screenshotUrl) return '<span class="shot-none">—</span>';
+  const title=x.screenshotFile?`View ${esc(x.screenshotFile)}`:"View screenshot";
+  return `<button type="button" class="shot-btn" data-shot-url="${esc(x.screenshotUrl)}" data-shot-title="${title}">View</button>`;
+}
+function openScreenshot(url,title){
+  $("shotImage").src=url;
+  $("shotCaption").textContent=title||"RuneLite Boss Kills screenshot";
+  $("shotModal").classList.add("open");
+  $("shotModal").setAttribute("aria-hidden","false");
+}
+function closeScreenshot(){
+  $("shotModal").classList.remove("open");
+  $("shotModal").setAttribute("aria-hidden","true");
+  $("shotImage").removeAttribute("src");
+}
+
+function renderStats(){
+  const rows=statsRows();
+  const pp=rows.reduce((s,r)=>s+(+r.personalPoints||0),0);
+  const tp=rows.reduce((s,r)=>s+(+r.totalPoints||0),0);
+  const ap=rows.filter(raidHasPersonalPurple).length;
+  const ao=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
+  const ep=pp/860000,eo=tp/860000;
+
+  $("luckPersonal").textContent=ep?`${(ap/ep*100).toFixed(0)}%`:"—";
+  $("luckPersonalDetail").textContent=`${ap} actual / ${ep.toFixed(2)} expected`;
+  $("luckPersonalPoints").textContent=`${fmtNum(pp)} personal points`;
+  $("luckOverall").textContent=eo?`${(ao/eo*100).toFixed(0)}%`:"—";
+  $("luckOverallDetail").textContent=`${ao} actual / ${eo.toFixed(2)} expected`;
+  $("luckOverallPoints").textContent=`${fmtNum(tp)} overall points`;
+
+  const cd=currentDry(rows),cs=currentDry(rows.filter(r=>+r.teamSize===1));
+  $("currentDryOverall").textContent=`${fmtNum(cd.count)} raids`;
+  $("currentDryOverallPts").textContent=`${fmtNum(cd.points)} personal points`;
+  $("currentDrySolo").textContent=`${fmtNum(cs.count)} raids`;
+  $("currentDrySoloPts").textContent=`${fmtNum(cs.points)} personal points`;
+
+  const ld=longestPointsDry(rows),ls=longestPointsDry(rows.filter(r=>+r.teamSize===1));
+  $("pointsDryOverall").textContent=`${fmtNum(ld.points)} pts`;
+  $("pointsDryOverallRaids").textContent=`across ${fmtNum(ld.raids)} raids`;
+  $("pointsDrySolo").textContent=`${fmtNum(ls.points)} pts`;
+  $("pointsDrySoloRaids").textContent=`across ${fmtNum(ls.raids)} solo raids`;
+
+  $("teamPerfBody").innerHTML=[1,2,3,4,5].map(size=>{
+    const s=rows.filter(r=>+r.teamSize===size);
+    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
+    const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
+    const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
+    const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
+    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
+  }).join("");
+
+  const rollingRows=rollingTeamSize==="all"?rows:rows.filter(r=>+r.teamSize===+rollingTeamSize);
+  $("rollingBody").innerHTML=[10,25,50].map(n=>{
+    const s=rollingRows.slice(-n);
+    if(!s.length)return `<tr><td>Last ${n}</td><td>—</td><td>—</td><td>0</td></tr>`;
+    const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
+    const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
+    const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
+    return `<tr><td>Last ${Math.min(n,s.length)}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${p}</td></tr>`;
+  }).join("");
+
+  const dm=new Map();
+  for(const r of rows)for(const x of(r.specialLootEntries||[]))if(isPurpleEntry(x))dm.set(x.name,(dm.get(x.name)||0)+1);
+  const dist=[...dm.entries()].sort((a,b)=>b[1]-a[1]),mx=dist.length?dist[0][1]:1;
+  $("purpleDistribution").innerHTML=dist.length?dist.map(([n,c])=>`<div class="bar-row"><div class="loot-with-icon">${lootIconHtml(n,true)}<span>${esc(n)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(c/mx*100).toFixed(1)}%"></div></div><div class="num">${c}</div></div>`).join(""):'<span class="muted">No purples in this period.</span>';
+
+  const hist=[];
+  for(const r of rows)for(const x of(r.specialLootEntries||[]))if(isPurpleEntry(x))hist.push({r,x});
+  hist.sort((a,b)=>(+b.r.date||0)-(+a.r.date||0));
+  $("purpleHistoryBody").innerHTML=hist.length?hist.map(({r,x})=>`<tr>
+    <td>${lootIconHtml(x.name,true)}</td>
+    <td>${fmtDate(r.date)}</td>
+    <td class="history-item purple-text">${esc(x.name)}</td>
+    <td>${esc(x.receiver||"Unknown")}</td>
+    <td class="num">${fmtNum(r.kc)}</td>
+    <td class="num">${fmtNum(r.teamSize)}</td>
+    <td>${r.challengeMode?"CM":"Reg"}</td>
+    <td class="num">${fmtNum(r.personalPoints)}</td>
+    <td>${screenshotCell(x)}</td>
+  </tr>`).join(""):'<tr><td colspan="9" class="muted">No purples in this period.</td></tr>';
+
+  const pm=new Map();
+  for(const r of rows)for(const x of(r.specialLootEntries||[])){
+    const p=(x.receiver||"").trim();if(!p)continue;
+    if(!pm.has(p))pm.set(p,{player:p,purples:0,kits:0,dust:0,total:0});
+    const v=pm.get(p);if(x.kind==="purple")v.purples++;else if(x.kind==="kit")v.kits++;else if(x.kind==="dust")v.dust++;v.total++;
+  }
+  const pv=[...pm.values()].sort((a,b)=>b.purples-a.purples||a.player.localeCompare(b.player));
+  $("playerLootBody").innerHTML=pv.map(v=>`<tr><td>${esc(v.player)}</td><td>${v.purples}</td><td class="kit">${v.kits}</td><td class="dust">${v.dust}</td><td>${v.total}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">No named receivers.</td></tr>';
+}
+
+
+function statsRows(){
+  let rows=[...DATA].sort((a,b)=>(+a.date||0)-(+b.date||0));
+
+  if(statsMode==="cm") rows=rows.filter(r=>!!r.challengeMode);
+  else if(statsMode==="reg") rows=rows.filter(r=>!r.challengeMode);
+
+  if(statsPeriod==="all") return rows;
+  if(statsPeriod==="50") return rows.slice(-50);
+  if(statsPeriod==="100") return rows.slice(-100);
+  const latest=rows.length?Math.max(...rows.map(r=>+r.date||0)):Date.now();
+  const d=new Date(latest);
+  if(statsPeriod==="30d") d.setDate(d.getDate()-30);
+  if(statsPeriod==="3m") d.setMonth(d.getMonth()-3);
+  if(statsPeriod==="6m") d.setMonth(d.getMonth()-6);
+  return rows.filter(r=>(+r.date||0)>=d.getTime());
+}
+function currentDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let count=0,points=0;for(let i=rows.length-1;i>=0;i--){if(raidHasPersonalPurple(rows[i]))break;count++;points+=(+rows[i].personalPoints||0)}return{count,points}}
+function longestPointsDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let cp=0,cr=0,bp=0,br=0;for(const r of rows){if(raidHasPersonalPurple(r)){if(cp>bp){bp=cp;br=cr}cp=0;cr=0}else{cp+=(+r.personalPoints||0);cr++}}if(cp>bp){bp=cp;br=cr}return{points:bp,raids:br}}
+function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="num">${fmtNum(r.personalDeaths)}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
+const events=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).length,0),val=rows.reduce((s,r)=>s+(+r.specialLootValue||0),0),regVal=rows.reduce((s,r)=>s+(+r.regularLootValue||0),0),at=rows.length?rows.reduce((s,r)=>s+(+r.raidTime||0),0)/rows.length:0,ap=rows.length?rows.reduce((s,r)=>s+(+r.personalPoints||0),0)/rows.length:0;$("mRaids").textContent=rows.length.toLocaleString();$("mSpecial").textContent=events.toLocaleString();$("mValue").textContent=fmtGp(val);$("mRegularValue").textContent=fmtGp(regVal);$("mTime").textContent=fmtTime(at);$("mPoints").textContent=fmtNum(ap);$("status").textContent=`Showing ${rows.length.toLocaleString()} of ${DATA.length.toLocaleString()} raids`}
+document.querySelectorAll(".filters input,.filters select").forEach(el=>el.addEventListener("input",render));
+document.querySelectorAll("th[data-key]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.key;if(state.sortKey===k)state.sortDir*=-1;else{state.sortKey=k;state.sortDir=(k==="date"||k==="kc")?-1:1}render()}));
+
+document.querySelectorAll("[data-player-sort]").forEach(th=>th.addEventListener("click",()=>{
+  const key=th.dataset.playerSort;
+  if(playerLootState.sortKey===key) playerLootState.sortDir*=-1;
+  else{
+    playerLootState.sortKey=key;
+    playerLootState.sortDir=key==="player"?1:-1;
+  }
+  renderPlayerLootStats();
+}));
+
+document.querySelectorAll("[data-stats-mode]").forEach(btn=>btn.addEventListener("click",()=>{
+  statsMode=btn.dataset.statsMode;
+  document.querySelectorAll("[data-stats-mode]").forEach(b=>b.classList.toggle("active",b===btn));
+  renderStats();
+}));
+
+document.querySelectorAll("[data-period]").forEach(btn=>btn.addEventListener("click",()=>{statsPeriod=btn.dataset.period;document.querySelectorAll("[data-period]").forEach(b=>b.classList.toggle("active",b===btn));renderStats()}));
+
+document.querySelectorAll("[data-rolling-size]").forEach(btn=>btn.addEventListener("click",()=>{
+  rollingTeamSize=btn.dataset.rollingSize;
+  document.querySelectorAll("[data-rolling-size]").forEach(b=>b.classList.toggle("active",b===btn));
+  renderStats();
+}));
+
+
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-shot-url]");
+  if(btn){
+    openScreenshot(btn.dataset.shotUrl,btn.dataset.shotTitle||"");
+    return;
+  }
+  if(e.target===$("shotModal")) closeScreenshot();
+});
+$("shotClose").onclick=closeScreenshot;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeScreenshot()});
+
+$("acceptNotice").onclick=async()=>{await fetch("/api/accept-notice?ts="+Date.now(),{cache:"no-store"});$("firstNotice").classList.remove("open");$("firstNotice").setAttribute("aria-hidden","true");await loadData();};$("chooseRoot").onclick=chooseRoot;$("changeRoot").onclick=async()=>showSetup(await fetchSetup());$("accountPicker").onchange=e=>selectAccount(e.target.value);$("setupCancel").onclick=hideSetup;
+
+
+$("refresh").onclick=loadData;
+$("reset").onclick=()=>{document.querySelectorAll(".filters input").forEach(el=>{if(el.type==="checkbox")el.checked=false;else el.value=""});document.querySelectorAll(".filters select").forEach(el=>el.value="");render()};
+$("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal %","Deaths","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,r.percentage,r.personalDeaths,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
+loadData();
+</script></body></html>
