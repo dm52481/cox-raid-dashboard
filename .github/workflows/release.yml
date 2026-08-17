@@ -32,7 +32,7 @@ jobs:
         run: python -m py_compile app/server.py
 
       - name: Bandit security scan
-        run: python -m bandit -q -r app
+        run: python -m bandit -q -r app -ll
 
       - name: Install Inno Setup
         shell: powershell
