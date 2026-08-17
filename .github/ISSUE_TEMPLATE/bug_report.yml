@@ -1,0 +1,35 @@
+name: Bug report
+description: Report a problem with the dashboard
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include private RuneLite logs, screenshots, usernames, or security vulnerability details.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release version or Git commit
+      placeholder: v1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
