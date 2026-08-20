@@ -8,7 +8,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:1600px;margin:auto;padding:24px}.head{display:flex;justify-content:space-between;gap:20px}.sub,.source,.status{color:var(--muted)}
 h1{font-size:26px;margin:0 0 4px}.live{display:flex;align-items:center;gap:7px;color:var(--green)}.dot{height:9px;width:9px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
-.metrics{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:14px 0 18px}.metric,.filters{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin:14px 0 18px}.metric,.filters{background:var(--panel);border:1px solid var(--border);border-radius:12px}
 .metric{padding:14px}.metric .label{color:var(--muted);font-size:12px}.metric .value{font-size:22px;font-weight:700}
 .filters{padding:14px;display:grid;grid-template-columns:2fr repeat(5,minmax(130px,1fr));gap:10px;align-items:end}
 label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,select,button{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
@@ -112,6 +112,24 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .quit-card{width:min(480px,94vw);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center}
 .quit-card h2{margin:0 0 8px}.quit-card p{color:var(--muted)}
 
+
+.loot-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:5px}
+.loot-breakdown .subhead{font-size:11px;font-weight:700}
+.loot-breakdown .subval{font-size:20px;font-weight:700;margin-top:2px}
+.purple-head{color:var(--purple)}.kit-head{color:var(--green)}.dust-head{color:var(--cyan)}
+.stats-group-title{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 8px}
+.best-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.best-item{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:10px}
+.best-item .label{font-size:11px;color:var(--muted)}.best-item .value{font-size:18px;font-weight:700;margin-top:2px}
+.ahead{color:var(--green);font-weight:700}.behind{color:var(--danger);font-weight:700}
+.own-drop-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(194,151,255,.12);color:var(--purple);border:1px solid rgba(194,151,255,.35);vertical-align:middle}
+.column-toggle{position:relative;display:inline-block}
+.column-toggle-menu{position:absolute;left:0;top:calc(100% + 6px);min-width:190px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px;z-index:60;display:none;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.column-toggle-menu.open{display:block}
+.column-toggle-menu label{display:flex;align-items:center;gap:8px;padding:5px 4px;color:var(--text);font-size:12px;margin:0}
+.column-toggle-menu input{width:auto}.hidden-col{display:none!important}
+@media(max-width:850px){.metrics{grid-template-columns:1fr}.best-grid{grid-template-columns:1fr}}
+
 @media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -125,18 +143,22 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 </div></div><div class="live"><span class="dot"></span><span id="liveText">Loading…</span></div></div>
 
 <section class="metrics">
-<div class="metric"><div class="label">Visible raids</div><div class="value" id="mRaids">—</div></div>
-<div class="metric"><div class="label">Special loot events</div><div class="value" id="mSpecial">—</div></div>
-<div class="metric"><div class="label">Special loot value</div><div class="value" id="mValue">—</div></div>
-<div class="metric"><div class="label">Regular loot value</div><div class="value" id="mRegularValue">—</div></div>
-<div class="metric"><div class="label">Avg raid time</div><div class="value" id="mTime">—</div></div>
-<div class="metric"><div class="label">Avg personal points</div><div class="value" id="mPoints">—</div></div>
-<div class="metric"><div class="label">Personal pts/hr</div><div class="value" id="mPointsPerHour">—</div></div>
+<div class="metric"><div class="label">Raids</div><div class="value" id="mRaids">—</div></div>
+<div class="metric">
+  <div class="label">Special loot</div>
+  <div class="loot-breakdown">
+    <div><div class="subhead purple-head">Purples</div><div class="subval" id="mPurples">—</div></div>
+    <div><div class="subhead kit-head">Kits</div><div class="subval" id="mKits">—</div></div>
+    <div><div class="subhead dust-head">Dust</div><div class="subval" id="mDust">—</div></div>
+  </div>
+</div>
+<div class="metric"><div class="label">Total Loot Value</div><div class="value" id="mTotalLootValue">—</div></div>
 </section>
 
 
 <section class="stats-section">
   <div class="stats-title"><h2>Stats</h2><div class="stats-note">Purple = CoX unique only; kit/dust excluded</div></div>
+
   <div class="stats-mode-bar">
     <button class="period-btn active" data-stats-mode="all" type="button">All</button>
     <button class="period-btn" data-stats-mode="cm" type="button">CM</button>
@@ -151,6 +173,41 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
     <button class="period-btn" data-period="100">Last 100 Raids</button>
   </div>
 
+  <div class="stats-group-title">Performance</div>
+  <div class="preview-grid">
+    <div class="preview-panel">
+      <h3>Personal Bests</h3>
+      <div class="best-grid">
+        <div class="best-item"><div class="label">Fastest raid</div><div class="value" id="pbFastest">—</div><div class="stat-sub" id="pbFastestDetail">—</div></div>
+        <div class="best-item"><div class="label">Highest personal pts</div><div class="value" id="pbPoints">—</div><div class="stat-sub" id="pbPointsDetail">—</div></div>
+        <div class="best-item"><div class="label">Highest pts/hr</div><div class="value" id="pbPph">—</div><div class="stat-sub" id="pbPphDetail">—</div></div>
+        <div class="best-item"><div class="label">Highest personal %</div><div class="value" id="pbPercent">—</div><div class="stat-sub" id="pbPercentDetail">—</div></div>
+      </div>
+    </div>
+
+    <div class="preview-panel wide">
+      <h3>Team-size performance</h3>
+      <table class="small-table">
+        <thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Pers. pts/hr</th><th>Avg pers. %</th><th>Purples</th><th>Purple rate</th></tr></thead>
+        <tbody id="teamPerfBody"></tbody>
+      </table>
+    </div>
+
+    <div class="preview-panel">
+      <h3>Rolling performance</h3>
+      <div class="rolling-tabs">
+        <button class="rolling-tab active" data-rolling-size="all">Any size</button>
+        <button class="rolling-tab" data-rolling-size="1">1</button>
+        <button class="rolling-tab" data-rolling-size="2">2</button>
+        <button class="rolling-tab" data-rolling-size="3">3</button>
+        <button class="rolling-tab" data-rolling-size="4">4</button>
+        <button class="rolling-tab" data-rolling-size="5">5</button>
+      </div>
+      <table class="small-table"><thead><tr><th>Window</th><th>Avg time</th><th>Avg pts</th><th>Pts/hr</th><th>Purples</th></tr></thead><tbody id="rollingBody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="stats-group-title">Purple Tracking</div>
   <div class="preview-grid">
     <div class="preview-panel">
       <h3>Purple luck</h3>
@@ -186,24 +243,6 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
       <div class="stat-sub" id="pointsDrySoloRaids">—</div>
     </div>
 
-    <div class="preview-panel wide">
-      <h3>Team-size performance</h3>
-      <table class="small-table"><thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Pers. pts/hr</th><th>Purples</th><th>Purple rate</th></tr></thead><tbody id="teamPerfBody"></tbody></table>
-    </div>
-
-    <div class="preview-panel">
-      <h3>Rolling performance</h3>
-      <div class="rolling-tabs">
-        <button class="rolling-tab active" data-rolling-size="all">Any size</button>
-        <button class="rolling-tab" data-rolling-size="1">1</button>
-        <button class="rolling-tab" data-rolling-size="2">2</button>
-        <button class="rolling-tab" data-rolling-size="3">3</button>
-        <button class="rolling-tab" data-rolling-size="4">4</button>
-        <button class="rolling-tab" data-rolling-size="5">5</button>
-      </div>
-      <table class="small-table"><thead><tr><th>Window</th><th>Avg time</th><th>Avg pts</th><th>Pts/hr</th><th>Purples</th></tr></thead><tbody id="rollingBody"></tbody></table>
-    </div>
-
     <div class="preview-panel">
       <h3>Purple distribution</h3>
       <div id="purpleDistribution"></div>
@@ -213,12 +252,15 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
       <h3>Purple history</h3>
       <div class="history-wrap">
         <table class="history-table">
-          <thead><tr><th></th><th>Date</th><th>Loot</th><th>Receiver</th><th class="num">KC</th><th class="num">Size</th><th>Mode</th><th class="num">Personal pts</th><th>Screenshot</th></tr></thead>
+          <thead><tr><th></th><th>Date</th><th>Loot</th><th>Receiver</th><th class="num">KC</th><th class="num">Size</th><th>Mode</th><th class="num">Personal pts</th><th>Dry before drop</th><th>Screenshot</th></tr></thead>
           <tbody id="purpleHistoryBody"></tbody>
         </table>
       </div>
     </div>
+  </div>
 
+  <div class="stats-group-title">Loot</div>
+  <div class="preview-grid">
     <div class="preview-panel full">
       <h3>Special loot by player</h3>
       <table class="player-loot-table"><thead><tr><th>Player</th><th>Purples</th><th>Kits</th><th>Dust</th><th>Total special</th></tr></thead><tbody id="playerLootBody"></tbody></table>
@@ -238,6 +280,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 </section>
 
 <div class="actions">
+<span class="column-toggle">
+  <button id="columnsBtn" type="button">Columns</button>
+  <div class="column-toggle-menu" id="columnMenu">
+    <label><input type="checkbox" data-col-toggle="pph"> Personal pts/hr</label>
+  </div>
+</span>
 <button id="refresh">Refresh now</button>
 <button id="reset">Reset filters</button>
 <button id="csv">Export filtered CSV</button>
@@ -247,8 +295,8 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 <div id="error" class="error" hidden></div>
 <div class="tablewrap"><table><thead><tr>
 <th data-key="date">Date</th><th data-key="kc" class="num">KC</th><th data-key="teamSize" class="num">Size</th><th data-key="challengeMode">Mode</th>
-<th data-key="raidTime" class="num">Raid time</th><th data-key="totalPoints" class="num">Team pts</th><th data-key="personalPoints" class="num">Personal pts</th>
-<th data-key="percentage" class="num">Personal %</th><th data-key="personalDeaths" class="num">Deaths</th><th>Special loot</th><th class="receiver">Receiver</th>
+<th data-key="raidTime" class="num">Raid time</th><th data-key="totalPoints" class="num">Team pts</th><th data-key="personalPoints" class="num">Personal pts</th><th class="num col-pph hidden-col">Pers. pts/hr</th>
+<th data-key="percentage" class="num">Personal %</th><th>Special loot</th><th class="receiver">Receiver</th>
 <th data-key="specialLootValue" class="num">Special value</th><th data-key="regularLootValue" class="num">Regular value</th><th>Regular loot</th>
 </tr></thead><tbody id="body"></tbody></table></div>
 </div>
@@ -510,20 +558,52 @@ function closeScreenshot(){
   $("shotImage").removeAttribute("src");
 }
 
+function dryBeforePurpleMap(records){
+  const out=new Map();
+  let raids=0,points=0;
+  for(const r of [...records].sort((a,b)=>(+a.date||0)-(+b.date||0))){
+    if(raidHasPersonalPurple(r)){
+      out.set(r,{raids,points});
+      raids=0;points=0;
+    }else{
+      raids++;
+      points+=(+r.personalPoints||0);
+    }
+  }
+  return out;
+}
+
 function renderStats(){
   const rows=statsRows();
+
+  const timed=rows.filter(r=>+r.raidTime>0);
+  const fastest=timed.length?[...timed].sort((a,b)=>+a.raidTime-+b.raidTime)[0]:null;
+  const highPts=rows.length?[...rows].sort((a,b)=>(+b.personalPoints||0)-(+a.personalPoints||0))[0]:null;
+  const highPph=timed.length?[...timed].sort((a,b)=>personalPointsPerHour(b)-personalPointsPerHour(a))[0]:null;
+  const highPct=rows.length?[...rows].sort((a,b)=>(+b.percentage||0)-(+a.percentage||0))[0]:null;
+  const pbDetail=r=>r?`KC ${fmtNum(r.kc)} · ${r.teamSize}-man · ${r.challengeMode?"CM":"Reg"}`:"—";
+
+  $("pbFastest").textContent=fastest?fmtTime(fastest.raidTime):"—";
+  $("pbFastestDetail").textContent=pbDetail(fastest);
+  $("pbPoints").textContent=highPts?fmtNum(highPts.personalPoints):"—";
+  $("pbPointsDetail").textContent=pbDetail(highPts);
+  $("pbPph").textContent=highPph?fmtNum(personalPointsPerHour(highPph)):"—";
+  $("pbPphDetail").textContent=pbDetail(highPph);
+  $("pbPercent").textContent=highPct?`${(+highPct.percentage||0).toFixed(1)}%`:"—";
+  $("pbPercentDetail").textContent=pbDetail(highPct);
   const pp=rows.reduce((s,r)=>s+(+r.personalPoints||0),0);
   const tp=rows.reduce((s,r)=>s+(+r.totalPoints||0),0);
   const ap=rows.filter(raidHasPersonalPurple).length;
   const ao=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
   const ep=pp/860000,eo=tp/860000;
 
-  $("luckPersonal").textContent=ep?`${(ap/ep*100).toFixed(0)}%`:"—";
-  $("luckPersonalDetail").textContent=`${ap} actual / ${ep.toFixed(2)} expected`;
-  $("luckPersonalPoints").textContent=`${fmtNum(pp)} personal points`;
-  $("luckOverall").textContent=eo?`${(ao/eo*100).toFixed(0)}%`:"—";
-  $("luckOverallDetail").textContent=`${ao} actual / ${eo.toFixed(2)} expected`;
-  $("luckOverallPoints").textContent=`${fmtNum(tp)} overall points`;
+  const personalDelta=ap-ep,overallDelta=ao-eo;
+  $("luckPersonal").textContent=`${ap} purple${ap===1?"":"s"}`;
+  $("luckPersonalDetail").innerHTML=`${ep.toFixed(2)} expected · <span class="${personalDelta>=0?"ahead":"behind"}">${personalDelta>=0?"+":""}${personalDelta.toFixed(2)} ${personalDelta>=0?"ahead":"behind"}</span>`;
+  $("luckPersonalPoints").textContent=`${fmtNum(pp)} personal points · ${ep?`${(ap/ep*100).toFixed(0)}% expected`:"—"}`;
+  $("luckOverall").textContent=`${ao} purple${ao===1?"":"s"}`;
+  $("luckOverallDetail").innerHTML=`${eo.toFixed(2)} expected · <span class="${overallDelta>=0?"ahead":"behind"}">${overallDelta>=0?"+":""}${overallDelta.toFixed(2)} ${overallDelta>=0?"ahead":"behind"}</span>`;
+  $("luckOverallPoints").textContent=`${fmtNum(tp)} overall points · ${eo?`${(ao/eo*100).toFixed(0)}% expected`:"—"}`;
 
   const cd=currentDry(rows),cs=currentDry(rows.filter(r=>+r.teamSize===1));
   $("currentDryOverall").textContent=`${fmtNum(cd.count)} raids`;
@@ -539,12 +619,13 @@ function renderStats(){
 
   $("teamPerfBody").innerHTML=[1,2,3,4,5].map(size=>{
     const s=rows.filter(r=>+r.teamSize===size);
-    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
+    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
     const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
     const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
     const pph=weightedPersonalPointsPerHour(s);
+    const avgPct=s.reduce((x,r)=>x+(+r.percentage||0),0)/s.length;
     const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
-    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
+    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${avgPct.toFixed(1)}%</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
   }).join("");
 
   const rollingRows=rollingTeamSize==="all"?rows:rows.filter(r=>+r.teamSize===+rollingTeamSize);
@@ -563,20 +644,22 @@ function renderStats(){
   const dist=[...dm.entries()].sort((a,b)=>b[1]-a[1]),mx=dist.length?dist[0][1]:1;
   $("purpleDistribution").innerHTML=dist.length?dist.map(([n,c])=>`<div class="bar-row"><div class="loot-with-icon">${lootIconHtml(n,true)}<span>${esc(n)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(c/mx*100).toFixed(1)}%"></div></div><div class="num">${c}</div></div>`).join(""):'<span class="muted">No purples in this period.</span>';
 
+  const dryBefore=dryBeforePurpleMap(rows);
   const hist=[];
   for(const r of rows)for(const x of(r.specialLootEntries||[]))if(isPurpleEntry(x))hist.push({r,x});
   hist.sort((a,b)=>(+b.r.date||0)-(+a.r.date||0));
   $("purpleHistoryBody").innerHTML=hist.length?hist.map(({r,x})=>`<tr>
     <td>${lootIconHtml(x.name,true)}</td>
     <td>${fmtDate(r.date)}</td>
-    <td class="history-item purple-text">${esc(x.name)}</td>
+    <td class="history-item purple-text">${esc(x.name)}${r.specialLootInOwnName?'<span class="own-drop-badge">YOUR DROP</span>':""}</td>
     <td>${esc(x.receiver||"Unknown")}</td>
     <td class="num">${fmtNum(r.kc)}</td>
     <td class="num">${fmtNum(r.teamSize)}</td>
     <td>${r.challengeMode?"CM":"Reg"}</td>
     <td class="num">${fmtNum(r.personalPoints)}</td>
+    <td>${r.specialLootInOwnName && dryBefore.has(r)?`${fmtNum(dryBefore.get(r).raids)} raids / ${fmtNum(dryBefore.get(r).points)} pts`:"—"}</td>
     <td>${screenshotCell(x)}</td>
-  </tr>`).join(""):'<tr><td colspan="9" class="muted">No purples in this period.</td></tr>';
+  </tr>`).join(""):'<tr><td colspan="10" class="muted">No purples in this period.</td></tr>';
 
   const pm=new Map();
   for(const r of rows)for(const x of(r.specialLootEntries||[])){
@@ -607,8 +690,17 @@ function statsRows(){
 }
 function currentDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let count=0,points=0;for(let i=rows.length-1;i>=0;i--){if(raidHasPersonalPurple(rows[i]))break;count++;points+=(+rows[i].personalPoints||0)}return{count,points}}
 function longestPointsDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let cp=0,cr=0,bp=0,br=0;for(const r of rows){if(raidHasPersonalPurple(r)){if(cp>bp){bp=cp;br=cr}cp=0;cr=0}else{cp+=(+r.personalPoints||0);cr++}}if(cp>bp){bp=cp;br=cr}return{points:bp,raids:br}}
-function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="num">${fmtNum(r.personalDeaths)}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
-const events=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).length,0),val=rows.reduce((s,r)=>s+(+r.specialLootValue||0),0),regVal=rows.reduce((s,r)=>s+(+r.regularLootValue||0),0),at=rows.length?rows.reduce((s,r)=>s+(+r.raidTime||0),0)/rows.length:0,ap=rows.length?rows.reduce((s,r)=>s+(+r.personalPoints||0),0)/rows.length:0,pph=weightedPersonalPointsPerHour(rows);$("mRaids").textContent=rows.length.toLocaleString();$("mSpecial").textContent=events.toLocaleString();$("mValue").textContent=fmtGp(val);$("mRegularValue").textContent=fmtGp(regVal);$("mTime").textContent=fmtTime(at);$("mPoints").textContent=fmtNum(ap);$("mPointsPerHour").textContent=fmtNum(pph);$("status").textContent=`Showing ${rows.length.toLocaleString()} of ${DATA.length.toLocaleString()} raids`}
+function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num col-pph hidden-col">${fmtNum(personalPointsPerHour(r))}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
+const purples=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="purple").length,0),
+kits=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="kit").length,0),
+dusts=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="dust").length,0),
+totalLoot=rows.reduce((s,r)=>s+(+r.specialLootValue||0)+(+r.regularLootValue||0),0);
+$("mRaids").textContent=rows.length.toLocaleString();
+$("mPurples").textContent=purples.toLocaleString();
+$("mKits").textContent=kits.toLocaleString();
+$("mDust").textContent=dusts.toLocaleString();
+$("mTotalLootValue").textContent=fmtGp(totalLoot);
+$("status").textContent=`Showing ${rows.length.toLocaleString()} of ${DATA.length.toLocaleString()} raids`}
 document.querySelectorAll(".filters input,.filters select").forEach(el=>el.addEventListener("input",render));
 document.querySelectorAll("th[data-key]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.key;if(state.sortKey===k)state.sortDir*=-1;else{state.sortKey=k;state.sortDir=(k==="date"||k==="kc")?-1:1}render()}));
 
@@ -652,9 +744,15 @@ $("acceptNotice").onclick=async()=>{await fetch("/api/accept-notice?ts="+Date.no
 
 
 $("quitDashboard").onclick=quitDashboard;
+$("columnsBtn").onclick=e=>{e.stopPropagation();$("columnMenu").classList.toggle("open")};
+document.querySelectorAll("[data-col-toggle]").forEach(cb=>cb.addEventListener("change",()=>{
+  document.querySelectorAll(".col-"+cb.dataset.colToggle).forEach(el=>el.classList.toggle("hidden-col",!cb.checked));
+}));
+document.addEventListener("click",e=>{if(!e.target.closest(".column-toggle"))$("columnMenu").classList.remove("open")});
+
 $("refresh").onclick=loadData;
 $("reset").onclick=()=>{document.querySelectorAll(".filters input").forEach(el=>{if(el.type==="checkbox")el.checked=false;else el.value=""});document.querySelectorAll(".filters select").forEach(el=>el.value="");render()};
-$("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal Points/Hour","Personal %","Deaths","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,Math.round(personalPointsPerHour(r)),r.percentage,r.personalDeaths,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
+$("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal Points/Hour","Personal %","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,Math.round(personalPointsPerHour(r)),r.percentage,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
 startHeartbeat();
 loadData();
 </script></body></html>

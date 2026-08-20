@@ -182,3 +182,21 @@ respective owners.
 ## License
 
 Project source code is available under the [MIT License](LICENSE).
+
+
+## v22 presentation and stats update
+
+- Top summary now shows only Raids, Purple/Kit/Dust counts, and Total Loot Value.
+- Main raid table has an optional Personal pts/hr column under the Columns menu.
+- Team-size Performance includes average personal contribution percentage.
+- Personal Bests includes fastest raid, highest personal points, highest personal pts/hr, and highest personal percentage.
+- Purple Luck emphasizes actual drops, expected drops, and how far ahead/behind expectation the result is.
+- Purple History shows the dry streak before each personal purple and marks personal drops with a YOUR DROP badge.
+- Stats are grouped into Performance, Purple Tracking, and Loot.
+
+
+## v23 data-quality adjustment
+
+RuneLite raid-log death data is intentionally not displayed or exported by this
+dashboard because the current source field is known to be unreliable and may
+incorrectly report zero.
