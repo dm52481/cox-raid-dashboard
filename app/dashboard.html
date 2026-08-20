@@ -196,6 +196,15 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .purple-receiver-filter label{margin:0;font-size:11px;color:var(--muted);font-weight:700}
 .purple-receiver-filter select{margin-top:4px;min-width:180px;width:auto}
 
+
+.live{align-self:flex-start}
+.top-refresh{margin-left:6px;padding:5px 9px;font-size:11px;line-height:1.2}
+.table-toolbar{display:flex;justify-content:flex-end;align-items:center;margin:8px 0 6px}
+.table-toolbar .column-toggle{margin-left:auto}
+.table-toolbar .column-toggle-menu{left:auto;right:0}
+#columnsBtn{display:inline-flex;align-items:center;gap:6px}
+.columns-chevron{font-size:11px;line-height:1;opacity:.8;transform:translateY(-1px)}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -205,7 +214,11 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 </label>
 <button id="changeRoot" type="button">Change .runelite Folder</button>
 <button id="quitDashboard" type="button">Quit Dashboard</button>
-</div></div><div class="live"><span class="dot"></span><span id="liveText">Loading…</span></div></div>
+</div></div><div class="live">
+  <span class="dot"></span>
+  <span id="liveText">Loading…</span>
+  <button id="refresh" class="top-refresh" type="button">Refresh now</button>
+</div></div>
 
 <section class="metrics">
 <div class="metric"><div class="label">Raids</div><div class="value" id="mRaids">—</div></div>
@@ -370,19 +383,22 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 </section>
 
 <div class="actions">
-<span class="column-toggle">
-  <button id="columnsBtn" type="button">Columns</button>
-  <div class="column-toggle-menu" id="columnMenu">
-    <label><input type="checkbox" data-col-toggle="pph"> Personal pts/hr</label>
-  </div>
-</span>
-<button id="refresh">Refresh now</button>
+
+
 <button id="reset">Reset filters</button>
 <button id="csv">Export filtered CSV</button>
 <div class="status" id="status"></div>
 </div>
 
 <div id="error" class="error" hidden></div>
+<div class="table-toolbar">
+  <span class="column-toggle">
+    <button id="columnsBtn" type="button">Columns <span class="columns-chevron" aria-hidden="true">▾</span></button>
+    <div class="column-toggle-menu" id="columnMenu">
+      <label><input type="checkbox" data-col-toggle="pph"> Personal pts/hr</label>
+    </div>
+  </span>
+</div>
 <div class="tablewrap"><table><thead><tr>
 <th data-key="date">Date</th><th data-key="kc" class="num">KC</th><th data-key="teamSize" class="num">Size</th><th data-key="challengeMode">Mode</th>
 <th data-key="raidTime" class="num">Raid time</th><th data-key="totalPoints" class="num">Team pts</th><th data-key="personalPoints" class="num">Personal pts</th><th class="num col-pph hidden-col">Pers. pts/hr</th>

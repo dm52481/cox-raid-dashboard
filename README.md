@@ -293,3 +293,10 @@ Purple Distribution now has an independent receiver filter.
 The Purple Distribution receiver filter now uses a dropdown instead of one
 button per receiver. "All receivers" remains the default and selecting a
 specific receiver recalculates Received, Expected, and +/- exactly as before.
+
+
+## v32 control layout update
+
+- Refresh Now is now beside the LIVE status indicator in the top-right header.
+- Columns is right-aligned immediately above the raid table.
+- Columns includes a down-chevron to clearly indicate that it opens a menu.

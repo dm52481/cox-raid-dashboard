@@ -293,3 +293,10 @@ Received, Expected, and +/- recalculate for the selected receiver only.
 v31 — Purple Distribution receiver dropdown
 -------------------------------------------
 Replaced per-receiver filter buttons with a single Receiver dropdown.
+
+
+v32 — control layout
+--------------------
+- Refresh Now moved beside the LIVE status indicator.
+- Columns moved to the right edge above the raid table.
+- Added a down-chevron to the Columns button.
