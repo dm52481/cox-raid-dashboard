@@ -200,3 +200,17 @@ Project source code is available under the [MIT License](LICENSE).
 RuneLite raid-log death data is intentionally not displayed or exported by this
 dashboard because the current source field is known to be unreliable and may
 incorrectly report zero.
+
+
+## v24 presentation/filter update
+
+- Personal Purple History drops no longer show a separate "YOUR DROP" badge;
+  instead, the receiver name itself is rendered as the purple badge.
+- Personal Bests now contains Fastest Raid, Highest Personal Points, and
+  Highest Personal Points/Hour.
+- Stats periods are now All Time, 1/3/6/12 Months, Custom Time Interval,
+  and Custom Number of Raids.
+- The top summary cards use compact widths instead of stretching across the
+  full dashboard.
+- The Purple/Kit/Dust card no longer has a "Special loot" heading; its labels
+  are neutral and the numeric values carry the purple/green/cyan coloring.

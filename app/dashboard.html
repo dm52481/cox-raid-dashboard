@@ -8,7 +8,7 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{max-width:1600px;margin:auto;padding:24px}.head{display:flex;justify-content:space-between;gap:20px}.sub,.source,.status{color:var(--muted)}
 h1{font-size:26px;margin:0 0 4px}.live{display:flex;align-items:center;gap:7px;color:var(--green)}.dot{height:9px;width:9px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green)}
-.metrics{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:10px;margin:14px 0 18px}.metric,.filters{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.metrics{display:grid;grid-template-columns:minmax(130px,180px) minmax(300px,390px) minmax(180px,240px);gap:10px;margin:14px 0 18px;justify-content:start}.metric,.filters{background:var(--panel);border:1px solid var(--border);border-radius:12px}
 .metric{padding:14px}.metric .label{color:var(--muted);font-size:12px}.metric .value{font-size:22px;font-weight:700}
 .filters{padding:14px;display:grid;grid-template-columns:2fr repeat(5,minmax(130px,1fr));gap:10px;align-items:end}
 label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}input,select,button{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 10px}
@@ -53,6 +53,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .stats-mode-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 6px}.period-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 14px}
 .period-btn{width:auto;padding:7px 11px;border-radius:999px;background:var(--panel2);color:var(--muted)}
 .rolling-mode-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}.period-btn.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.stats-custom-panel{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin:-4px 0 14px;padding:10px;background:var(--panel);border:1px solid var(--border);border-radius:10px;width:max-content;max-width:100%}
+.stats-custom-panel[hidden]{display:none}
+.stats-custom-panel label{margin:0;min-width:170px}
+.stats-custom-panel input{margin-top:5px}
+
 .preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
 .preview-panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}
 .preview-panel.wide{grid-column:span 2}.preview-panel.full{grid-column:1/-1}
@@ -114,23 +120,23 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
 
 .loot-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:5px}
-.loot-breakdown .subhead{font-size:11px;font-weight:700}
+.loot-breakdown .subhead{font-size:11px;font-weight:700;color:var(--muted)}
 .loot-breakdown .subval{font-size:20px;font-weight:700;margin-top:2px}
-.purple-head{color:var(--purple)}.kit-head{color:var(--green)}.dust-head{color:var(--cyan)}
+.purple-val{color:var(--purple)}.kit-val{color:var(--green)}.dust-val{color:var(--cyan)}
 .stats-group-title{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 8px}
-.best-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.best-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .best-item{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:10px}
 .best-item .label{font-size:11px;color:var(--muted)}.best-item .value{font-size:18px;font-weight:700;margin-top:2px}
 .ahead{color:var(--green);font-weight:700}.behind{color:var(--danger);font-weight:700}
-.own-drop-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;background:rgba(194,151,255,.12);color:var(--purple);border:1px solid rgba(194,151,255,.35);vertical-align:middle}
+.own-drop-badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:700;background:rgba(194,151,255,.12);color:var(--purple);border:1px solid rgba(194,151,255,.35);vertical-align:middle}
 .column-toggle{position:relative;display:inline-block}
 .column-toggle-menu{position:absolute;left:0;top:calc(100% + 6px);min-width:190px;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:8px;z-index:60;display:none;box-shadow:0 12px 32px rgba(0,0,0,.35)}
 .column-toggle-menu.open{display:block}
 .column-toggle-menu label{display:flex;align-items:center;gap:8px;padding:5px 4px;color:var(--text);font-size:12px;margin:0}
 .column-toggle-menu input{width:auto}.hidden-col{display:none!important}
-@media(max-width:850px){.metrics{grid-template-columns:1fr}.best-grid{grid-template-columns:1fr}}
+@media(max-width:850px){.metrics{grid-template-columns:1fr;justify-content:stretch}.best-grid{grid-template-columns:1fr}}
 
-@media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}
+@media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.filters{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body><div class="wrap">
@@ -145,11 +151,10 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 <section class="metrics">
 <div class="metric"><div class="label">Raids</div><div class="value" id="mRaids">—</div></div>
 <div class="metric">
-  <div class="label">Special loot</div>
   <div class="loot-breakdown">
-    <div><div class="subhead purple-head">Purples</div><div class="subval" id="mPurples">—</div></div>
-    <div><div class="subhead kit-head">Kits</div><div class="subval" id="mKits">—</div></div>
-    <div><div class="subhead dust-head">Dust</div><div class="subval" id="mDust">—</div></div>
+    <div><div class="subhead">Purples</div><div class="subval purple-val" id="mPurples">—</div></div>
+    <div><div class="subhead">Kits</div><div class="subval kit-val" id="mKits">—</div></div>
+    <div><div class="subhead">Dust</div><div class="subval dust-val" id="mDust">—</div></div>
   </div>
 </div>
 <div class="metric"><div class="label">Total Loot Value</div><div class="value" id="mTotalLootValue">—</div></div>
@@ -166,11 +171,21 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
   </div>
   <div class="period-bar">
     <button class="period-btn active" data-period="all">All Time</button>
-    <button class="period-btn" data-period="30d">Last 30 Days</button>
-    <button class="period-btn" data-period="3m">Last 3 Months</button>
-    <button class="period-btn" data-period="6m">Last 6 Months</button>
-    <button class="period-btn" data-period="50">Last 50 Raids</button>
-    <button class="period-btn" data-period="100">Last 100 Raids</button>
+    <button class="period-btn" data-period="1m">1 Month</button>
+    <button class="period-btn" data-period="3m">3 Months</button>
+    <button class="period-btn" data-period="6m">6 Months</button>
+    <button class="period-btn" data-period="12m">12 Months</button>
+    <button class="period-btn" data-period="customDates">Custom time interval</button>
+    <button class="period-btn" data-period="customRaids">Custom # of raids</button>
+  </div>
+  <div class="stats-custom-panel" id="customDatesPanel" hidden>
+    <label>From <input id="statsDateFrom" type="date"></label>
+    <label>To <input id="statsDateTo" type="date"></label>
+  </div>
+  <div class="stats-custom-panel" id="customRaidsPanel" hidden>
+    <label>Most recent raids
+      <input id="statsRaidCount" type="number" min="1" step="1" value="50" inputmode="numeric">
+    </label>
   </div>
 
   <div class="stats-group-title">Performance</div>
@@ -181,7 +196,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
         <div class="best-item"><div class="label">Fastest raid</div><div class="value" id="pbFastest">—</div><div class="stat-sub" id="pbFastestDetail">—</div></div>
         <div class="best-item"><div class="label">Highest personal pts</div><div class="value" id="pbPoints">—</div><div class="stat-sub" id="pbPointsDetail">—</div></div>
         <div class="best-item"><div class="label">Highest pts/hr</div><div class="value" id="pbPph">—</div><div class="stat-sub" id="pbPphDetail">—</div></div>
-        <div class="best-item"><div class="label">Highest personal %</div><div class="value" id="pbPercent">—</div><div class="stat-sub" id="pbPercentDetail">—</div></div>
+        
       </div>
     </div>
 
@@ -580,7 +595,6 @@ function renderStats(){
   const fastest=timed.length?[...timed].sort((a,b)=>+a.raidTime-+b.raidTime)[0]:null;
   const highPts=rows.length?[...rows].sort((a,b)=>(+b.personalPoints||0)-(+a.personalPoints||0))[0]:null;
   const highPph=timed.length?[...timed].sort((a,b)=>personalPointsPerHour(b)-personalPointsPerHour(a))[0]:null;
-  const highPct=rows.length?[...rows].sort((a,b)=>(+b.percentage||0)-(+a.percentage||0))[0]:null;
   const pbDetail=r=>r?`KC ${fmtNum(r.kc)} · ${r.teamSize}-man · ${r.challengeMode?"CM":"Reg"}`:"—";
 
   $("pbFastest").textContent=fastest?fmtTime(fastest.raidTime):"—";
@@ -589,8 +603,7 @@ function renderStats(){
   $("pbPointsDetail").textContent=pbDetail(highPts);
   $("pbPph").textContent=highPph?fmtNum(personalPointsPerHour(highPph)):"—";
   $("pbPphDetail").textContent=pbDetail(highPph);
-  $("pbPercent").textContent=highPct?`${(+highPct.percentage||0).toFixed(1)}%`:"—";
-  $("pbPercentDetail").textContent=pbDetail(highPct);
+
   const pp=rows.reduce((s,r)=>s+(+r.personalPoints||0),0);
   const tp=rows.reduce((s,r)=>s+(+r.totalPoints||0),0);
   const ap=rows.filter(raidHasPersonalPurple).length;
@@ -651,8 +664,8 @@ function renderStats(){
   $("purpleHistoryBody").innerHTML=hist.length?hist.map(({r,x})=>`<tr>
     <td>${lootIconHtml(x.name,true)}</td>
     <td>${fmtDate(r.date)}</td>
-    <td class="history-item purple-text">${esc(x.name)}${r.specialLootInOwnName?'<span class="own-drop-badge">YOUR DROP</span>':""}</td>
-    <td>${esc(x.receiver||"Unknown")}</td>
+    <td class="history-item purple-text">${esc(x.name)}</td>
+    <td>${r.specialLootInOwnName?`<span class="own-drop-badge">${esc(x.receiver||"Unknown")}</span>`:esc(x.receiver||"Unknown")}</td>
     <td class="num">${fmtNum(r.kc)}</td>
     <td class="num">${fmtNum(r.teamSize)}</td>
     <td>${r.challengeMode?"CM":"Reg"}</td>
@@ -679,13 +692,29 @@ function statsRows(){
   else if(statsMode==="reg") rows=rows.filter(r=>!r.challengeMode);
 
   if(statsPeriod==="all") return rows;
-  if(statsPeriod==="50") return rows.slice(-50);
-  if(statsPeriod==="100") return rows.slice(-100);
+
+  if(statsPeriod==="customRaids"){
+    const n=Math.max(1,parseInt($("statsRaidCount").value,10)||1);
+    return rows.slice(-n);
+  }
+
+  if(statsPeriod==="customDates"){
+    const from=$("statsDateFrom").value;
+    const to=$("statsDateTo").value;
+    const fromMs=from?new Date(from+"T00:00:00").getTime():null;
+    const toMs=to?new Date(to+"T23:59:59.999").getTime():null;
+    return rows.filter(r=>{
+      const d=+r.date||0;
+      return (fromMs===null||d>=fromMs)&&(toMs===null||d<=toMs);
+    });
+  }
+
   const latest=rows.length?Math.max(...rows.map(r=>+r.date||0)):Date.now();
   const d=new Date(latest);
-  if(statsPeriod==="30d") d.setDate(d.getDate()-30);
+  if(statsPeriod==="1m") d.setMonth(d.getMonth()-1);
   if(statsPeriod==="3m") d.setMonth(d.getMonth()-3);
   if(statsPeriod==="6m") d.setMonth(d.getMonth()-6);
+  if(statsPeriod==="12m") d.setMonth(d.getMonth()-12);
   return rows.filter(r=>(+r.date||0)>=d.getTime());
 }
 function currentDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let count=0,points=0;for(let i=rows.length-1;i>=0;i--){if(raidHasPersonalPurple(rows[i]))break;count++;points+=(+rows[i].personalPoints||0)}return{count,points}}
@@ -720,7 +749,17 @@ document.querySelectorAll("[data-stats-mode]").forEach(btn=>btn.addEventListener
   renderStats();
 }));
 
-document.querySelectorAll("[data-period]").forEach(btn=>btn.addEventListener("click",()=>{statsPeriod=btn.dataset.period;document.querySelectorAll("[data-period]").forEach(b=>b.classList.toggle("active",b===btn));renderStats()}));
+function updateStatsPeriodControls(){
+  $("customDatesPanel").hidden=statsPeriod!=="customDates";
+  $("customRaidsPanel").hidden=statsPeriod!=="customRaids";
+}
+document.querySelectorAll("[data-period]").forEach(btn=>btn.addEventListener("click",()=>{
+  statsPeriod=btn.dataset.period;
+  document.querySelectorAll("[data-period]").forEach(b=>b.classList.toggle("active",b===btn));
+  updateStatsPeriodControls();
+  renderStats();
+}));
+["statsDateFrom","statsDateTo","statsRaidCount"].forEach(id=>$(id).addEventListener("input",()=>{if(statsPeriod==="customDates"||statsPeriod==="customRaids")renderStats()}));
 
 document.querySelectorAll("[data-rolling-size]").forEach(btn=>btn.addEventListener("click",()=>{
   rollingTeamSize=btn.dataset.rollingSize;
