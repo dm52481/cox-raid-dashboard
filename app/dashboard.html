@@ -96,12 +96,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .regular-loot-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .regular-loot-heading h3{margin:0}
 
-.regular-loot-grid{display:grid;grid-template-columns:repeat(5,minmax(68px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:9px;overflow:hidden;max-width:100%}
-.regular-loot-item{position:relative;min-height:78px;background:#171b22;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:17px 4px 5px;text-align:center;overflow:hidden}
+.regular-loot-grid{display:grid;grid-template-columns:repeat(5,minmax(48px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:9px;overflow:hidden;max-width:100%}
+.regular-loot-item{position:relative;min-height:42px;background:#171b22;display:flex;align-items:center;justify-content:center;padding:13px 3px 3px;text-align:center;overflow:hidden}
 .regular-loot-item:hover{background:#1d232d}
-.regular-loot-qty{position:absolute;top:4px;left:5px;right:5px;color:#e6e600;font-weight:700;font-size:12px;line-height:1;text-shadow:1px 1px 1px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.regular-loot-icon{width:34px;height:34px;object-fit:contain;image-rendering:auto;margin-bottom:3px}
-.regular-loot-name{width:100%;font-size:9px;line-height:1.15;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-qty{position:absolute;top:3px;left:3px;right:3px;color:#e6e600;font-weight:700;font-size:10px;line-height:1;text-shadow:1px 1px 1px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-icon{width:24px;height:24px;object-fit:contain;image-rendering:auto;margin:0}
+
 
 .regular-loot-total{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
 
@@ -177,6 +177,25 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 @media(max-width:850px){.metrics{grid-template-columns:1fr;justify-content:stretch}.best-grid{grid-template-columns:1fr}}
 
 @media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.filters{grid-template-columns:1fr 1fr}}
+
+.purple-dist-item{display:inline-flex;align-items:center;gap:7px}
+.purple-dist-icon{width:26px;height:26px;object-fit:contain;flex:0 0 26px}
+.regular-loot-grid{grid-template-columns:repeat(5,minmax(48px,1fr))}
+.regular-loot-item{min-height:42px;padding:13px 3px 3px}
+.regular-loot-icon{width:24px;height:24px;margin:0}
+.regular-loot-qty{font-size:10px;top:3px;left:3px;right:3px}
+@media(max-width:620px){
+  .regular-loot-grid{grid-template-columns:repeat(4,minmax(46px,1fr))}
+}
+@media(max-width:480px){
+  .regular-loot-grid{grid-template-columns:repeat(3,minmax(44px,1fr))}
+}
+
+
+.purple-receiver-filter{display:flex;align-items:end;gap:8px;margin:9px 0 10px}
+.purple-receiver-filter label{margin:0;font-size:11px;color:var(--muted);font-weight:700}
+.purple-receiver-filter select{margin-top:4px;min-width:180px;width:auto}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -301,6 +320,10 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
     <div class="preview-panel">
       <h3>Purple distribution</h3>
       <div class="stat-sub">Expected uses the drop weighting active on each purple's raid date.</div>
+      <div class="purple-receiver-filter">
+        <label for="purpleReceiverSelect">Receiver</label>
+        <select id="purpleReceiverSelect"></select>
+      </div>
       <table class="small-table purple-distribution-table">
         <thead><tr><th>Item</th><th>Received</th><th>Expected</th><th>+/-</th></tr></thead>
         <tbody id="purpleDistribution"></tbody>
@@ -458,7 +481,7 @@ window.addEventListener("pagehide",()=>{
   // The server expires this tab naturally if it does not return.
 });
 
-let DATA=[];const $=id=>document.getElementById(id);const state={sortKey:"date",sortDir:-1};const playerLootState={sortKey:"purples",sortDir:-1};let statsPeriod="all";let rollingTeamSize="all";let statsMode="all";
+let DATA=[];const $=id=>document.getElementById(id);const state={sortKey:"date",sortDir:-1};const playerLootState={sortKey:"purples",sortDir:-1};let statsPeriod="all";let rollingTeamSize="all";let statsMode="all";let purpleReceiver="all";
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fmtNum(n){return Number.isFinite(+n)?Math.round(+n).toLocaleString():"—"}
 function fmtGp(n){if(!Number.isFinite(+n)||+n<=0)return"—";let v=+n;if(v>=1e9)return(v/1e9).toFixed(2)+"b";if(v>=1e6)return(v/1e6).toFixed(2)+"m";if(v>=1e3)return(v/1e3).toFixed(1)+"k";return Math.round(v).toLocaleString()}
@@ -646,7 +669,6 @@ function renderRegularLoot(records){
         return `<div class="regular-loot-item" title="${esc(title)}">
           <div class="regular-loot-qty">${fmtNum(item.quantity)}</div>
           <img class="regular-loot-icon" src="${wikiIconUrl(item.name)}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
-          <div class="regular-loot-name">${esc(item.name)}</div>
         </div>`;
       }).join("")
     : '<div class="regular-loot-empty">No regular loot in this Stats period.</div>';
@@ -752,7 +774,7 @@ function canonicalPurpleName(name){
   return aliases[n]||name;
 }
 
-function expectedPurpleDistribution(records){
+function expectedPurpleDistribution(records,receiverFilter="all"){
   const expected=new Map();
   const received=new Map();
 
@@ -763,7 +785,11 @@ function expectedPurpleDistribution(records){
   }
 
   for(const r of records){
-    const purpleEvents=(r.specialLootEntries||[]).filter(isPurpleEntry);
+    const purpleEvents=(r.specialLootEntries||[]).filter(x=>{
+      if(!isPurpleEntry(x)) return false;
+      if(receiverFilter==="all") return true;
+      return ((x.receiver||"Unknown").trim()||"Unknown")===receiverFilter;
+    });
     if(!purpleEvents.length) continue;
 
     const weights=purpleWeightSetForRaid(r);
@@ -787,6 +813,36 @@ function expectedPurpleDistribution(records){
     expected:expected.get(item)||0
   }));
 }
+
+
+function purpleReceivers(records){
+  const names=new Set();
+  for(const r of records){
+    for(const x of (r.specialLootEntries||[])){
+      if(isPurpleEntry(x)){
+        names.add((x.receiver||"Unknown").trim()||"Unknown");
+      }
+    }
+  }
+  return [...names].sort((a,b)=>a.localeCompare(b));
+}
+
+function renderPurpleReceiverFilter(records){
+  const receivers=purpleReceivers(records);
+
+  if(purpleReceiver!=="all" && !receivers.includes(purpleReceiver)){
+    purpleReceiver="all";
+  }
+
+  const select=$("purpleReceiverSelect");
+  select.innerHTML=[
+    '<option value="all">All receivers</option>',
+    ...receivers.map(name=>`<option value="${esc(name)}">${esc(name)}</option>`)
+  ].join("");
+
+  select.value=purpleReceiver;
+}
+
 
 function dryBeforePurpleMap(records){
   const out=new Map();
@@ -875,16 +931,17 @@ function renderStats(){
   const dm=new Map();
   for(const r of rows)for(const x of(r.specialLootEntries||[]))if(isPurpleEntry(x))dm.set(x.name,(dm.get(x.name)||0)+1);
 
-  const purpleDist=expectedPurpleDistribution(rows);
+  renderPurpleReceiverFilter(rows);
+  const purpleDist=expectedPurpleDistribution(rows,purpleReceiver);
   $("purpleDistribution").innerHTML=purpleDist.map(v=>{
     const delta=v.received-v.expected;
     return `<tr>
-      <td>${esc(v.item)}</td>
+      <td><span class="purple-dist-item"><img class="purple-dist-icon" src="${wikiIconUrl(v.item)}" alt="${esc(v.item)}" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(v.item)}</span></span></td>
       <td>${v.received}</td>
       <td>${v.expected.toFixed(2)}</td>
       <td class="${delta>=0?"ahead":"behind"}">${delta>=0?"+":""}${delta.toFixed(2)}</td>
     </tr>`;
-  }).join("")||'<tr><td colspan="4" class="muted">No purples in this period.</td></tr>';
+  }).join("")||'<tr><td colspan="4" class="muted">No purples for this receiver in the selected period.</td></tr>';
 
   const dryBefore=dryBeforePurpleMap(rows);
   const hist=[];
@@ -1020,6 +1077,10 @@ document.querySelectorAll("[data-col-toggle]").forEach(cb=>cb.addEventListener("
 }));
 document.addEventListener("click",e=>{if(!e.target.closest(".column-toggle"))$("columnMenu").classList.remove("open")});
 
+$("purpleReceiverSelect").addEventListener("change",()=>{
+  purpleReceiver=$("purpleReceiverSelect").value;
+  renderStats();
+});
 $("refresh").onclick=loadData;
 $("reset").onclick=()=>{document.querySelectorAll(".filters input").forEach(el=>{if(el.type==="checkbox")el.checked=false;else el.value=""});document.querySelectorAll(".filters select").forEach(el=>el.value="");render()};
 $("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal Points/Hour","Personal %","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,Math.round(personalPointsPerHour(r)),r.percentage,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}

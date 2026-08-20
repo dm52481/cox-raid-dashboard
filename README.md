@@ -262,3 +262,34 @@ the weighting active when that raid was completed:
 
 For each observed purple, the item's expected count increases by
 `item weight / total weighting`. The final +/- is `received - expected`.
+
+
+## v29 loot presentation update
+
+- Purple Distribution now displays the OSRS item icon next to each unique.
+- Regular Loot cells are approximately half the previous height for a much
+  more compact RuneLite-style grid.
+- Regular Loot item names are no longer printed beneath icons; item name,
+  quantity, and value remain available in the hover tooltip.
+- The Regular Loot grid remains capped at five columns.
+
+
+## v30 Purple Distribution receiver filters
+
+Purple Distribution now has an independent receiver filter.
+
+- All receivers shows the combined purple distribution.
+- One filter button is generated for each receiver represented in the current
+  Stats dataset.
+- Selecting a receiver recalculates Received, Expected, and +/- using only
+  that receiver's purple events.
+- Historical weighting remains based on each selected purple's raid date and
+  Regular/CM mode.
+- The receiver filter changes only Purple Distribution.
+
+
+## v31 Purple Distribution receiver dropdown
+
+The Purple Distribution receiver filter now uses a dropdown instead of one
+button per receiver. "All receivers" remains the default and selecting a
+specific receiver recalculates Received, Expected, and +/- exactly as before.

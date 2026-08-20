@@ -198,3 +198,98 @@ v21 — browser lifetime / automatic shutdown
 - Refresh/navigation does not immediately unregister a tab, avoiding accidental
   shutdowns during normal page reloads.
 - A Quit Dashboard button immediately requests server shutdown.
+
+
+v22 — presentation/statistics redesign
+--------------------------------------
+Top summary:
+- Raids
+- Purples / Kits / Dust
+- Total Loot Value
+
+Main table:
+- optional Personal pts/hr via Columns
+
+Performance:
+- Personal Bests
+- Team-size Performance includes Avg Personal %
+
+Purple Tracking:
+- Purple Luck shows actual vs expected and ahead/behind
+- Purple History includes Dry Before Drop
+- personal drops receive a YOUR DROP badge
+
+Stats are grouped into Performance, Purple Tracking, and Loot.
+
+
+v23 — Death data hidden
+-----------------------
+The deaths field is not displayed anywhere in the dashboard and is excluded
+from CSV exports because the source log value is known to be unreliable.
+
+
+v24 — compact summary and flexible Stats periods
+------------------------------------------------
+- Receiver name is badge-styled for personal purples in Purple History.
+- Removed Highest Personal % from Personal Bests.
+- Stats periods: All Time, 1/3/6/12 Months, Custom Time Interval,
+  Custom Number of Raids.
+- Top summary cards no longer stretch to fill the full page width.
+- Purple/Kit/Dust values carry their category colors; headers are neutral.
+
+
+v25 — Team-size Performance update
+----------------------------------
+- Added Avg Overall Pts.
+- Purple +/- now shows:
+      actual purples - (overall points / 860,000)
+  instead of a raid-percentage purple rate.
+
+
+v26 — Regular Loot grid
+-----------------------
+Added a RuneLite-style Regular Loot grid to Stats -> Loot.
+
+The grid aggregates quantities and values from lootList for the current Stats
+selection and sorts items by aggregate GP value. It uses OSRS Wiki icons and
+shows quantity, item name, and hover details.
+
+
+v27 — Loot layout
+-----------------
+- Special Loot by Player and Regular Loot prefer a side-by-side layout.
+- Regular Loot is limited to a maximum of five columns.
+- Regular-loot cells/icons are smaller.
+- Layout stacks on narrower windows.
+
+
+v28 — historical Purple Distribution weighting
+----------------------------------------------
+Purple Distribution now shows Received, Expected, and +/-.
+
+Weighting rules:
+- before 2026-08-12: old table, total 69
+- on/after 2026-08-12 Regular: new Regular table, total 60
+- on/after 2026-08-12 CM: new CM table, total 56
+
+Expected is accumulated one observed purple at a time based on that raid's
+date and mode.
+
+
+v29 — compact loot presentation
+-------------------------------
+- Added item icons to Purple Distribution.
+- Regular Loot cells reduced to roughly half-height.
+- Regular Loot item-name text removed; tooltip remains.
+- Maximum Regular Loot width remains five columns.
+
+
+v30 — Purple Distribution receiver filters
+------------------------------------------
+Added All receivers plus one filter per receiver to Purple Distribution.
+Received, Expected, and +/- recalculate for the selected receiver only.
+
+
+v31 — Purple Distribution receiver dropdown
+-------------------------------------------
+Replaced per-receiver filter buttons with a single Receiver dropdown.
