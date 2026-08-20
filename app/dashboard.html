@@ -74,18 +74,44 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .rolling-tab{width:auto;padding:5px 9px;border-radius:999px;font-size:11px;color:var(--muted)}
 .rolling-tab.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 
+
+.loot-grid-layout{grid-template-columns:minmax(360px,0.9fr) minmax(420px,1.1fr);align-items:start}
 .regular-loot-panel{overflow:hidden}
+.regular-loot-grid{grid-template-columns:repeat(5,minmax(68px,1fr));max-width:100%}
+.regular-loot-item{min-height:78px;padding:17px 4px 5px}
+.regular-loot-icon{width:34px;height:34px}
+.regular-loot-qty{font-size:12px;top:4px;left:5px;right:5px}
+.regular-loot-name{font-size:9px}
+@media(max-width:1050px){
+  .loot-grid-layout{grid-template-columns:1fr}
+  .regular-loot-grid{grid-template-columns:repeat(5,minmax(64px,1fr))}
+}
+@media(max-width:620px){
+  .regular-loot-grid{grid-template-columns:repeat(4,minmax(60px,1fr))}
+}
+@media(max-width:480px){
+  .regular-loot-grid{grid-template-columns:repeat(3,minmax(58px,1fr))}
+}
+
 .regular-loot-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
 .regular-loot-heading h3{margin:0}
-.regular-loot-total{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
-.regular-loot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:9px;overflow:hidden}
-.regular-loot-item{position:relative;min-height:92px;background:#171b22;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:19px 5px 6px;text-align:center;overflow:hidden}
+
+.regular-loot-grid{display:grid;grid-template-columns:repeat(5,minmax(68px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:9px;overflow:hidden;max-width:100%}
+.regular-loot-item{position:relative;min-height:78px;background:#171b22;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:17px 4px 5px;text-align:center;overflow:hidden}
 .regular-loot-item:hover{background:#1d232d}
-.regular-loot-qty{position:absolute;top:5px;left:7px;right:7px;color:#e6e600;font-weight:700;font-size:13px;line-height:1;text-shadow:1px 1px 1px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.regular-loot-icon{width:42px;height:42px;object-fit:contain;image-rendering:auto;margin-bottom:3px}
-.regular-loot-name{width:100%;font-size:10px;line-height:1.15;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-qty{position:absolute;top:4px;left:5px;right:5px;color:#e6e600;font-weight:700;font-size:12px;line-height:1;text-shadow:1px 1px 1px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-icon{width:34px;height:34px;object-fit:contain;image-rendering:auto;margin-bottom:3px}
+.regular-loot-name{width:100%;font-size:9px;line-height:1.15;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.regular-loot-total{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+
+
+.regular-loot-item:hover{background:#1d232d}
+
+
+
 .regular-loot-empty{grid-column:1/-1;padding:22px;color:var(--muted);background:var(--panel2);text-align:center}
-@media(max-width:700px){.regular-loot-grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}.regular-loot-item{min-height:84px}.regular-loot-icon{width:36px;height:36px}}
+
 
 .loot-icon{width:28px;height:28px;object-fit:contain;vertical-align:middle;image-rendering:auto;flex:0 0 28px}
 .loot-icon.small{width:22px;height:22px;flex-basis:22px}
@@ -274,7 +300,11 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
     <div class="preview-panel">
       <h3>Purple distribution</h3>
-      <div id="purpleDistribution"></div>
+      <div class="stat-sub">Expected uses the drop weighting active on each purple's raid date.</div>
+      <table class="small-table purple-distribution-table">
+        <thead><tr><th>Item</th><th>Received</th><th>Expected</th><th>+/-</th></tr></thead>
+        <tbody id="purpleDistribution"></tbody>
+      </table>
     </div>
 
     <div class="preview-panel full">
@@ -289,13 +319,13 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
   </div>
 
   <div class="stats-group-title">Loot</div>
-  <div class="preview-grid">
-    <div class="preview-panel full">
+  <div class="preview-grid loot-grid-layout">
+    <div class="preview-panel">
       <h3>Special loot by player</h3>
       <table class="player-loot-table"><thead><tr><th>Player</th><th>Purples</th><th>Kits</th><th>Dust</th><th>Total special</th></tr></thead><tbody id="playerLootBody"></tbody></table>
     </div>
 
-    <div class="preview-panel full regular-loot-panel">
+    <div class="preview-panel regular-loot-panel">
       <div class="regular-loot-heading">
         <h3>Regular Loot</h3>
         <div class="regular-loot-total" id="regularLootTotal">—</div>
@@ -639,6 +669,125 @@ function closeScreenshot(){
   $("shotImage").removeAttribute("src");
 }
 
+
+const PURPLE_WEIGHT_CHANGE_DATE = new Date(2026,7,12,0,0,0,0).getTime();
+
+const PURPLE_WEIGHTS = {
+  old: {
+    total:69,
+    items:{
+      "Ancestral hat":3,
+      "Ancestral robe bottom":3,
+      "Ancestral robe top":3,
+      "Arcane prayer scroll":20,
+      "Dexterous prayer scroll":20,
+      "Dinh's bulwark":3,
+      "Dragon claws":3,
+      "Dragon hunter crossbow":4,
+      "Elder maul":2,
+      "Kodai insignia":2,
+      "Twisted bow":2,
+      "Twisted buckler":4
+    }
+  },
+  regular: {
+    total:60,
+    items:{
+      "Ancestral hat":4,
+      "Ancestral robe bottom":4,
+      "Ancestral robe top":4,
+      "Arcane prayer scroll":14,
+      "Dexterous prayer scroll":14,
+      "Dinh's bulwark":3,
+      "Dragon claws":3,
+      "Dragon hunter crossbow":4,
+      "Elder maul":2,
+      "Kodai insignia":2,
+      "Twisted bow":2,
+      "Twisted buckler":4
+    }
+  },
+  cm: {
+    total:56,
+    items:{
+      "Ancestral hat":4,
+      "Ancestral robe bottom":4,
+      "Ancestral robe top":4,
+      "Arcane prayer scroll":12,
+      "Dexterous prayer scroll":12,
+      "Dinh's bulwark":3,
+      "Dragon claws":3,
+      "Dragon hunter crossbow":4,
+      "Elder maul":2,
+      "Kodai insignia":2,
+      "Twisted bow":2,
+      "Twisted buckler":4
+    }
+  }
+};
+
+function purpleWeightSetForRaid(r){
+  const raidDate=+r.date||0;
+  if(raidDate<PURPLE_WEIGHT_CHANGE_DATE) return PURPLE_WEIGHTS.old;
+  return r.challengeMode ? PURPLE_WEIGHTS.cm : PURPLE_WEIGHTS.regular;
+}
+
+function canonicalPurpleName(name){
+  const n=(name||"").trim().toLowerCase();
+  const aliases={
+    "ancestral hat":"Ancestral hat",
+    "ancestral robe bottoms":"Ancestral robe bottom",
+    "ancestral robe bottom":"Ancestral robe bottom",
+    "ancestral robe top":"Ancestral robe top",
+    "arcane prayer scroll":"Arcane prayer scroll",
+    "dexterous prayer scroll":"Dexterous prayer scroll",
+    "dinh's bulwark":"Dinh's bulwark",
+    "dragon claws":"Dragon claws",
+    "dragon hunter crossbow":"Dragon hunter crossbow",
+    "elder maul":"Elder maul",
+    "kodai insignia":"Kodai insignia",
+    "twisted bow":"Twisted bow",
+    "twisted buckler":"Twisted buckler"
+  };
+  return aliases[n]||name;
+}
+
+function expectedPurpleDistribution(records){
+  const expected=new Map();
+  const received=new Map();
+
+  // Start all known uniques at zero so the table is stable even when none dropped.
+  for(const item of Object.keys(PURPLE_WEIGHTS.old.items)){
+    expected.set(item,0);
+    received.set(item,0);
+  }
+
+  for(const r of records){
+    const purpleEvents=(r.specialLootEntries||[]).filter(isPurpleEntry);
+    if(!purpleEvents.length) continue;
+
+    const weights=purpleWeightSetForRaid(r);
+
+    for(const event of purpleEvents){
+      // Every observed purple is one draw from the unique weighting table.
+      for(const [item,weight] of Object.entries(weights.items)){
+        expected.set(item,(expected.get(item)||0)+(weight/weights.total));
+      }
+
+      const item=canonicalPurpleName(event.name);
+      if(received.has(item)){
+        received.set(item,(received.get(item)||0)+1);
+      }
+    }
+  }
+
+  return [...expected.keys()].map(item=>({
+    item,
+    received:received.get(item)||0,
+    expected:expected.get(item)||0
+  }));
+}
+
 function dryBeforePurpleMap(records){
   const out=new Map();
   let raids=0,points=0;
@@ -725,8 +874,17 @@ function renderStats(){
 
   const dm=new Map();
   for(const r of rows)for(const x of(r.specialLootEntries||[]))if(isPurpleEntry(x))dm.set(x.name,(dm.get(x.name)||0)+1);
-  const dist=[...dm.entries()].sort((a,b)=>b[1]-a[1]),mx=dist.length?dist[0][1]:1;
-  $("purpleDistribution").innerHTML=dist.length?dist.map(([n,c])=>`<div class="bar-row"><div class="loot-with-icon">${lootIconHtml(n,true)}<span>${esc(n)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${(c/mx*100).toFixed(1)}%"></div></div><div class="num">${c}</div></div>`).join(""):'<span class="muted">No purples in this period.</span>';
+
+  const purpleDist=expectedPurpleDistribution(rows);
+  $("purpleDistribution").innerHTML=purpleDist.map(v=>{
+    const delta=v.received-v.expected;
+    return `<tr>
+      <td>${esc(v.item)}</td>
+      <td>${v.received}</td>
+      <td>${v.expected.toFixed(2)}</td>
+      <td class="${delta>=0?"ahead":"behind"}">${delta>=0?"+":""}${delta.toFixed(2)}</td>
+    </tr>`;
+  }).join("")||'<tr><td colspan="4" class="muted">No purples in this period.</td></tr>';
 
   const dryBefore=dryBeforePurpleMap(rows);
   const hist=[];

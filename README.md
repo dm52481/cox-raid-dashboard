@@ -236,3 +236,29 @@ Stats -> Loot now includes a RuneLite-style Regular Loot grid.
 - Sorts items by total GP value, then quantity.
 - Uses OSRS Wiki item icons through the same redirect mechanism as special loot.
 - Hovering an item shows its name, total quantity received, and total recorded value.
+
+
+## v27 Loot layout adjustment
+
+- Stats -> Loot now prefers a two-column layout on wider screens:
+  Special Loot by Player beside Regular Loot.
+- Regular Loot is capped at five columns.
+- Loot cells and icons were reduced in size so the grid fits more naturally
+  beside the player-loot table.
+- The section stacks vertically on narrower windows.
+
+
+## v28 historical Purple Distribution weighting
+
+Purple Distribution now includes Expected and +/- columns.
+
+Expected item counts are calculated separately for every observed purple using
+the weighting active when that raid was completed:
+
+- Before August 12, 2026: Old weighting (69 total) for both Regular and CM.
+- August 12, 2026 and later:
+  - Regular: New Regular weighting (60 total).
+  - CM: New CM weighting (56 total).
+
+For each observed purple, the item's expected count increases by
+`item weight / total weighting`. The final +/- is `received - expected`.
