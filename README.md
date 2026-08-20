@@ -214,3 +214,25 @@ incorrectly report zero.
   full dashboard.
 - The Purple/Kit/Dust card no longer has a "Special loot" heading; its labels
   are neutral and the numeric values carry the purple/green/cyan coloring.
+
+
+## v25 team-size performance update
+
+- Added Avg Overall Points to Team-size Performance.
+- Replaced the percentage-based Purple Rate column with Purple +/-.
+- Purple +/- is calculated as actual team purples minus expected purples,
+  where expected purples = total overall points / 860,000.
+- Positive values are shown as ahead of expectation; negative values are
+  shown as behind expectation.
+
+
+## v26 regular loot grid
+
+Stats -> Loot now includes a RuneLite-style Regular Loot grid.
+
+- Aggregates regular-loot quantities across the active Stats selection.
+- Honors All / CM / Regular and all Stats time-period filters.
+- Shows total regular-loot GP value in the panel heading.
+- Sorts items by total GP value, then quantity.
+- Uses OSRS Wiki item icons through the same redirect mechanism as special loot.
+- Hovering an item shows its name, total quantity received, and total recorded value.

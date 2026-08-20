@@ -73,6 +73,20 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .rolling-tabs{display:flex;gap:5px;flex-wrap:wrap;margin:0 0 9px}
 .rolling-tab{width:auto;padding:5px 9px;border-radius:999px;font-size:11px;color:var(--muted)}
 .rolling-tab.active{color:var(--text);border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.regular-loot-panel{overflow:hidden}
+.regular-loot-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.regular-loot-heading h3{margin:0}
+.regular-loot-total{font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap}
+.regular-loot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.regular-loot-item{position:relative;min-height:92px;background:#171b22;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:19px 5px 6px;text-align:center;overflow:hidden}
+.regular-loot-item:hover{background:#1d232d}
+.regular-loot-qty{position:absolute;top:5px;left:7px;right:7px;color:#e6e600;font-weight:700;font-size:13px;line-height:1;text-shadow:1px 1px 1px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-icon{width:42px;height:42px;object-fit:contain;image-rendering:auto;margin-bottom:3px}
+.regular-loot-name{width:100%;font-size:10px;line-height:1.15;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.regular-loot-empty{grid-column:1/-1;padding:22px;color:var(--muted);background:var(--panel2);text-align:center}
+@media(max-width:700px){.regular-loot-grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}.regular-loot-item{min-height:84px}.regular-loot-icon{width:36px;height:36px}}
+
 .loot-icon{width:28px;height:28px;object-fit:contain;vertical-align:middle;image-rendering:auto;flex:0 0 28px}
 .loot-icon.small{width:22px;height:22px;flex-basis:22px}
 .loot-with-icon{display:flex;align-items:center;gap:7px;min-width:0}
@@ -203,7 +217,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
     <div class="preview-panel wide">
       <h3>Team-size performance</h3>
       <table class="small-table">
-        <thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Pers. pts/hr</th><th>Avg pers. %</th><th>Purples</th><th>Purple rate</th></tr></thead>
+        <thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg overall pts</th><th>Avg pers. pts</th><th>Pers. pts/hr</th><th>Avg pers. %</th><th>Purples</th><th>Purple +/-</th></tr></thead>
         <tbody id="teamPerfBody"></tbody>
       </table>
     </div>
@@ -279,6 +293,14 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
     <div class="preview-panel full">
       <h3>Special loot by player</h3>
       <table class="player-loot-table"><thead><tr><th>Player</th><th>Purples</th><th>Kits</th><th>Dust</th><th>Total special</th></tr></thead><tbody id="playerLootBody"></tbody></table>
+    </div>
+
+    <div class="preview-panel full regular-loot-panel">
+      <div class="regular-loot-heading">
+        <h3>Regular Loot</h3>
+        <div class="regular-loot-total" id="regularLootTotal">—</div>
+      </div>
+      <div class="regular-loot-grid" id="regularLootGrid"></div>
     </div>
   </div>
 </section>
@@ -556,6 +578,50 @@ function lootIconHtml(name,small=false){
   return `<img class="${cls}" src="${wikiIconUrl(name)}" alt="" title="${esc(name)}" loading="lazy" onerror="this.style.display='none'">`;
 }
 
+
+function regularLootStats(records){
+  const items=new Map();
+  let totalValue=0;
+
+  for(const r of records){
+    totalValue+=(+r.regularLootValue||0);
+
+    for(const item of (r.lootList||[])){
+      const name=(item.name||"").trim();
+      if(!name) continue;
+
+      if(!items.has(name)) items.set(name,{name,quantity:0,value:0});
+      const agg=items.get(name);
+      agg.quantity+=(+item.quantity||0);
+      agg.value+=(+item.price||0);
+    }
+  }
+
+  const rows=[...items.values()].sort((a,b)=>
+    b.value-a.value ||
+    b.quantity-a.quantity ||
+    a.name.localeCompare(b.name)
+  );
+
+  return {rows,totalValue};
+}
+
+function renderRegularLoot(records){
+  const result=regularLootStats(records);
+  $("regularLootTotal").textContent=fmtGp(result.totalValue);
+
+  $("regularLootGrid").innerHTML=result.rows.length
+    ? result.rows.map(item=>{
+        const title=`${item.name}\n${fmtNum(item.quantity)} received\n${fmtGp(item.value)} total value`;
+        return `<div class="regular-loot-item" title="${esc(title)}">
+          <div class="regular-loot-qty">${fmtNum(item.quantity)}</div>
+          <img class="regular-loot-icon" src="${wikiIconUrl(item.name)}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
+          <div class="regular-loot-name">${esc(item.name)}</div>
+        </div>`;
+      }).join("")
+    : '<div class="regular-loot-empty">No regular loot in this Stats period.</div>';
+}
+
 function screenshotCell(x){
   if(!x || !x.screenshotUrl) return '<span class="shot-none">—</span>';
   const title=x.screenshotFile?`View ${esc(x.screenshotFile)}`:"View screenshot";
@@ -632,13 +698,18 @@ function renderStats(){
 
   $("teamPerfBody").innerHTML=[1,2,3,4,5].map(size=>{
     const s=rows.filter(r=>+r.teamSize===size);
-    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
+    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
     const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
+    const avgOverall=s.reduce((x,r)=>x+(+r.totalPoints||0),0)/s.length;
     const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
     const pph=weightedPersonalPointsPerHour(s);
     const avgPct=s.reduce((x,r)=>x+(+r.percentage||0),0)/s.length;
     const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
-    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${avgPct.toFixed(1)}%</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
+    const overallPoints=s.reduce((x,r)=>x+(+r.totalPoints||0),0);
+    const expected=overallPoints/860000;
+    const purpleDelta=p-expected;
+    const purpleDeltaText=`${purpleDelta>=0?"+":""}${purpleDelta.toFixed(2)}`;
+    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(avgOverall)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${avgPct.toFixed(1)}%</td><td>${p}</td><td class="${purpleDelta>=0?"ahead":"behind"}">${purpleDeltaText}</td></tr>`;
   }).join("");
 
   const rollingRows=rollingTeamSize==="all"?rows:rows.filter(r=>+r.teamSize===+rollingTeamSize);
@@ -682,6 +753,8 @@ function renderStats(){
   }
   const pv=[...pm.values()].sort((a,b)=>b.purples-a.purples||a.player.localeCompare(b.player));
   $("playerLootBody").innerHTML=pv.map(v=>`<tr><td>${esc(v.player)}</td><td>${v.purples}</td><td class="kit">${v.kits}</td><td class="dust">${v.dust}</td><td>${v.total}</td></tr>`).join("")||'<tr><td colspan="5" class="muted">No named receivers.</td></tr>';
+
+  renderRegularLoot(rows);
 }
 
 
