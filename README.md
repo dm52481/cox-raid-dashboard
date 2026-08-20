@@ -46,6 +46,7 @@ Current functionality includes:
 - current and longest personal purple dry streaks;
 - team-size performance;
 - rolling 10 / 25 / 50 raid performance with team-size selection;
+- personal points/hour metrics in the top summary, team-size performance, rolling performance, and CSV export;
 - purple distribution and purple history;
 - per-player special loot totals;
 - local Boss Kills screenshot viewing from Purple History;

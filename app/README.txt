@@ -173,3 +173,14 @@ The mode selector combines with:
 - Rolling Performance's Any size / 1 / 2 / 3 / 4 / 5 selector.
 
 Rolling Performance no longer has its own All / CM / Regular row.
+
+
+v20 — Personal points per hour
+------------------------------
+Per-raid personal points/hour:
+    personalPoints / (raidTimeSeconds / 3600)
+
+Aggregate points/hour uses total personal points divided by total raid time,
+which correctly weights raids by duration.
+
+Added to the top summary, Team-size performance, Rolling performance, and CSV.

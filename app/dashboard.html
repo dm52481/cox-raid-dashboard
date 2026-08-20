@@ -124,6 +124,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 <div class="metric"><div class="label">Regular loot value</div><div class="value" id="mRegularValue">—</div></div>
 <div class="metric"><div class="label">Avg raid time</div><div class="value" id="mTime">—</div></div>
 <div class="metric"><div class="label">Avg personal points</div><div class="value" id="mPoints">—</div></div>
+<div class="metric"><div class="label">Personal pts/hr</div><div class="value" id="mPointsPerHour">—</div></div>
 </section>
 
 
@@ -180,7 +181,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
     <div class="preview-panel wide">
       <h3>Team-size performance</h3>
-      <table class="small-table"><thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Purples</th><th>Purple rate</th></tr></thead><tbody id="teamPerfBody"></tbody></table>
+      <table class="small-table"><thead><tr><th>Size</th><th>Raids</th><th>Avg time</th><th>Avg pers. pts</th><th>Pers. pts/hr</th><th>Purples</th><th>Purple rate</th></tr></thead><tbody id="teamPerfBody"></tbody></table>
     </div>
 
     <div class="preview-panel">
@@ -193,7 +194,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
         <button class="rolling-tab" data-rolling-size="4">4</button>
         <button class="rolling-tab" data-rolling-size="5">5</button>
       </div>
-      <table class="small-table"><thead><tr><th>Window</th><th>Avg time</th><th>Avg pts</th><th>Purples</th></tr></thead><tbody id="rollingBody"></tbody></table>
+      <table class="small-table"><thead><tr><th>Window</th><th>Avg time</th><th>Avg pts</th><th>Pts/hr</th><th>Purples</th></tr></thead><tbody id="rollingBody"></tbody></table>
     </div>
 
     <div class="preview-panel">
@@ -287,6 +288,8 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function fmtNum(n){return Number.isFinite(+n)?Math.round(+n).toLocaleString():"—"}
 function fmtGp(n){if(!Number.isFinite(+n)||+n<=0)return"—";let v=+n;if(v>=1e9)return(v/1e9).toFixed(2)+"b";if(v>=1e6)return(v/1e6).toFixed(2)+"m";if(v>=1e3)return(v/1e3).toFixed(1)+"k";return Math.round(v).toLocaleString()}
 function fmtTime(s){if(!Number.isFinite(+s)||+s<0)return"—";s=Math.round(+s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function personalPointsPerHour(r){const sec=+r.raidTime||0,pts=+r.personalPoints||0;return sec>0?pts/(sec/3600):0}
+function weightedPersonalPointsPerHour(rows){const sec=rows.reduce((s,r)=>s+(+r.raidTime||0),0),pts=rows.reduce((s,r)=>s+(+r.personalPoints||0),0);return sec>0?pts/(sec/3600):0}
 function fmtDate(ms){return ms?new Date(ms).toLocaleString([],{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—"}
 function dateOnly(ms){const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function refill(id,vals,label){const el=$(id),old=el.value;el.innerHTML=`<option value="">${label}</option>`;[...new Set(vals.filter(v=>v!==null&&v!==undefined&&v!==""))].sort((a,b)=>typeof a==="number"?a-b:String(a).localeCompare(String(b))).forEach(v=>el.add(new Option(id==="size"?v+" player":v,v)));if([...el.options].some(o=>o.value===old))el.value=old}
@@ -476,21 +479,23 @@ function renderStats(){
 
   $("teamPerfBody").innerHTML=[1,2,3,4,5].map(size=>{
     const s=rows.filter(r=>+r.teamSize===size);
-    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
+    if(!s.length)return `<tr><td>${size}</td><td>0</td><td>—</td><td>—</td><td>—</td><td>0</td><td>—</td></tr>`;
     const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
     const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
+    const pph=weightedPersonalPointsPerHour(s);
     const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
-    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
+    return `<tr><td>${size}</td><td>${s.length}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${p}</td><td>${(p/s.length*100).toFixed(1)}%</td></tr>`;
   }).join("");
 
   const rollingRows=rollingTeamSize==="all"?rows:rows.filter(r=>+r.teamSize===+rollingTeamSize);
   $("rollingBody").innerHTML=[10,25,50].map(n=>{
     const s=rollingRows.slice(-n);
-    if(!s.length)return `<tr><td>Last ${n}</td><td>—</td><td>—</td><td>0</td></tr>`;
+    if(!s.length)return `<tr><td>Last ${n}</td><td>—</td><td>—</td><td>—</td><td>0</td></tr>`;
     const at=s.reduce((x,r)=>x+(+r.raidTime||0),0)/s.length;
     const av=s.reduce((x,r)=>x+(+r.personalPoints||0),0)/s.length;
+    const pph=weightedPersonalPointsPerHour(s);
     const p=s.reduce((x,r)=>x+(r.specialLootEntries||[]).filter(isPurpleEntry).length,0);
-    return `<tr><td>Last ${Math.min(n,s.length)}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${p}</td></tr>`;
+    return `<tr><td>Last ${Math.min(n,s.length)}</td><td>${fmtTime(at)}</td><td>${fmtNum(av)}</td><td>${fmtNum(pph)}</td><td>${p}</td></tr>`;
   }).join("");
 
   const dm=new Map();
@@ -543,7 +548,7 @@ function statsRows(){
 function currentDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let count=0,points=0;for(let i=rows.length-1;i>=0;i--){if(raidHasPersonalPurple(rows[i]))break;count++;points+=(+rows[i].personalPoints||0)}return{count,points}}
 function longestPointsDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let cp=0,cr=0,bp=0,br=0;for(const r of rows){if(raidHasPersonalPurple(r)){if(cp>bp){bp=cp;br=cr}cp=0;cr=0}else{cp+=(+r.personalPoints||0);cr++}}if(cp>bp){bp=cp;br=cr}return{points:bp,raids:br}}
 function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="num">${fmtNum(r.personalDeaths)}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
-const events=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).length,0),val=rows.reduce((s,r)=>s+(+r.specialLootValue||0),0),regVal=rows.reduce((s,r)=>s+(+r.regularLootValue||0),0),at=rows.length?rows.reduce((s,r)=>s+(+r.raidTime||0),0)/rows.length:0,ap=rows.length?rows.reduce((s,r)=>s+(+r.personalPoints||0),0)/rows.length:0;$("mRaids").textContent=rows.length.toLocaleString();$("mSpecial").textContent=events.toLocaleString();$("mValue").textContent=fmtGp(val);$("mRegularValue").textContent=fmtGp(regVal);$("mTime").textContent=fmtTime(at);$("mPoints").textContent=fmtNum(ap);$("status").textContent=`Showing ${rows.length.toLocaleString()} of ${DATA.length.toLocaleString()} raids`}
+const events=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).length,0),val=rows.reduce((s,r)=>s+(+r.specialLootValue||0),0),regVal=rows.reduce((s,r)=>s+(+r.regularLootValue||0),0),at=rows.length?rows.reduce((s,r)=>s+(+r.raidTime||0),0)/rows.length:0,ap=rows.length?rows.reduce((s,r)=>s+(+r.personalPoints||0),0)/rows.length:0,pph=weightedPersonalPointsPerHour(rows);$("mRaids").textContent=rows.length.toLocaleString();$("mSpecial").textContent=events.toLocaleString();$("mValue").textContent=fmtGp(val);$("mRegularValue").textContent=fmtGp(regVal);$("mTime").textContent=fmtTime(at);$("mPoints").textContent=fmtNum(ap);$("mPointsPerHour").textContent=fmtNum(pph);$("status").textContent=`Showing ${rows.length.toLocaleString()} of ${DATA.length.toLocaleString()} raids`}
 document.querySelectorAll(".filters input,.filters select").forEach(el=>el.addEventListener("input",render));
 document.querySelectorAll("th[data-key]").forEach(th=>th.addEventListener("click",()=>{const k=th.dataset.key;if(state.sortKey===k)state.sortDir*=-1;else{state.sortKey=k;state.sortDir=(k==="date"||k==="kc")?-1:1}render()}));
 
@@ -588,6 +593,6 @@ $("acceptNotice").onclick=async()=>{await fetch("/api/accept-notice?ts="+Date.no
 
 $("refresh").onclick=loadData;
 $("reset").onclick=()=>{document.querySelectorAll(".filters input").forEach(el=>{if(el.type==="checkbox")el.checked=false;else el.value=""});document.querySelectorAll(".filters select").forEach(el=>el.value="");render()};
-$("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal %","Deaths","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,r.percentage,r.personalDeaths,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
+$("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal Points/Hour","Personal %","Deaths","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,Math.round(personalPointsPerHour(r)),r.percentage,r.personalDeaths,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
 loadData();
 </script></body></html>
