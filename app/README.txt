@@ -300,3 +300,17 @@ v32 — control layout
 - Refresh Now moved beside the LIVE status indicator.
 - Columns moved to the right edge above the raid table.
 - Added a down-chevron to the Columns button.
+
+
+v33 — summary/table/loot update
+-------------------------------
+- Showing # of # raids moved left of Columns.
+- Top loot values: Purple / Regular / Total.
+- Loot grid now includes purple uniques plus regular loot.
+- Kits and dust remain excluded.
+
+
+v34 — loot-value placement
+--------------------------
+- Top summary restored to Total Loot Value only.
+- Purple / Regular / Total values moved to the top of the Loot grid.

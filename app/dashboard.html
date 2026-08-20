@@ -205,6 +205,22 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 #columnsBtn{display:inline-flex;align-items:center;gap:6px}
 .columns-chevron{font-size:11px;line-height:1;opacity:.8;transform:translateY(-1px)}
 
+
+.table-toolbar{justify-content:space-between}
+.table-status{margin-right:auto}
+
+
+.purple-loot-item{box-shadow:inset 0 0 0 1px rgba(194,151,255,.45);background:rgba(194,151,255,.07)}
+.purple-loot-item:hover{background:rgba(194,151,255,.12)}
+.purple-loot-qty{color:var(--purple)}
+
+
+.loot-grid-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 8px}
+.loot-grid-values>div{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center}
+.loot-grid-values .label{font-size:10px;color:var(--muted);font-weight:700}
+.loot-grid-values .value{font-size:15px;font-weight:700;margin-top:2px;white-space:nowrap}
+.total-loot-val{color:var(--gold)}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -363,8 +379,21 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
     <div class="preview-panel regular-loot-panel">
       <div class="regular-loot-heading">
-        <h3>Regular Loot</h3>
-        <div class="regular-loot-total" id="regularLootTotal">—</div>
+        <h3>Loot</h3>
+      </div>
+      <div class="loot-grid-values">
+        <div>
+          <div class="label">Purple</div>
+          <div class="value purple-val" id="lootGridPurpleValue">—</div>
+        </div>
+        <div>
+          <div class="label">Regular</div>
+          <div class="value" id="lootGridRegularValue">—</div>
+        </div>
+        <div>
+          <div class="label">Total</div>
+          <div class="value total-loot-val" id="lootGridTotalValue">—</div>
+        </div>
       </div>
       <div class="regular-loot-grid" id="regularLootGrid"></div>
     </div>
@@ -387,11 +416,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
 <button id="reset">Reset filters</button>
 <button id="csv">Export filtered CSV</button>
-<div class="status" id="status"></div>
+
 </div>
 
 <div id="error" class="error" hidden></div>
 <div class="table-toolbar">
+  <div class="status table-status" id="status"></div>
   <span class="column-toggle">
     <button id="columnsBtn" type="button">Columns <span class="columns-chevron" aria-hidden="true">▾</span></button>
     <div class="column-toggle-menu" id="columnMenu">
@@ -650,19 +680,32 @@ function lootIconHtml(name,small=false){
 
 function regularLootStats(records){
   const items=new Map();
-  let totalValue=0;
+  let regularValue=0;
+  let purpleValue=0;
+
+  function addItem(name,quantity,value,kind="regular"){
+    name=(name||"").trim();
+    if(!name) return;
+
+    if(!items.has(name)) items.set(name,{name,quantity:0,value:0,kind});
+    const agg=items.get(name);
+    agg.quantity+=(+quantity||0);
+    agg.value+=(+value||0);
+    if(kind==="purple") agg.kind="purple";
+  }
 
   for(const r of records){
-    totalValue+=(+r.regularLootValue||0);
+    regularValue+=(+r.regularLootValue||0);
 
     for(const item of (r.lootList||[])){
-      const name=(item.name||"").trim();
-      if(!name) continue;
+      addItem(item.name,item.quantity,item.price,"regular");
+    }
 
-      if(!items.has(name)) items.set(name,{name,quantity:0,value:0});
-      const agg=items.get(name);
-      agg.quantity+=(+item.quantity||0);
-      agg.value+=(+item.price||0);
+    for(const item of (r.specialLootEntries||[])){
+      if(item.kind!=="purple") continue;
+      const value=(+item.value||0);
+      purpleValue+=value;
+      addItem(item.name,1,value,"purple");
     }
   }
 
@@ -672,22 +715,24 @@ function regularLootStats(records){
     a.name.localeCompare(b.name)
   );
 
-  return {rows,totalValue};
+  return {rows,regularValue,purpleValue,totalValue:regularValue+purpleValue};
 }
 
 function renderRegularLoot(records){
   const result=regularLootStats(records);
-  $("regularLootTotal").textContent=fmtGp(result.totalValue);
+  $("lootGridPurpleValue").textContent=fmtGp(result.purpleValue);
+  $("lootGridRegularValue").textContent=fmtGp(result.regularValue);
+  $("lootGridTotalValue").textContent=fmtGp(result.totalValue);
 
   $("regularLootGrid").innerHTML=result.rows.length
     ? result.rows.map(item=>{
         const title=`${item.name}\n${fmtNum(item.quantity)} received\n${fmtGp(item.value)} total value`;
-        return `<div class="regular-loot-item" title="${esc(title)}">
-          <div class="regular-loot-qty">${fmtNum(item.quantity)}</div>
+        return `<div class="regular-loot-item ${item.kind==="purple"?"purple-loot-item":""}" title="${esc(title)}">
+          <div class="regular-loot-qty ${item.kind==="purple"?"purple-loot-qty":""}">${fmtNum(item.quantity)}</div>
           <img class="regular-loot-icon" src="${wikiIconUrl(item.name)}" alt="${esc(item.name)}" loading="lazy" onerror="this.style.visibility='hidden'">
         </div>`;
       }).join("")
-    : '<div class="regular-loot-empty">No regular loot in this Stats period.</div>';
+    : '<div class="regular-loot-empty">No loot in this Stats period.</div>';
 }
 
 function screenshotCell(x){
@@ -1027,7 +1072,9 @@ function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e
 const purples=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="purple").length,0),
 kits=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="kit").length,0),
 dusts=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="dust").length,0),
-totalLoot=rows.reduce((s,r)=>s+(+r.specialLootValue||0)+(+r.regularLootValue||0),0);
+purpleLoot=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="purple").reduce((a,x)=>a+(+x.value||0),0),0),
+regularLoot=rows.reduce((s,r)=>s+(+r.regularLootValue||0),0),
+totalLoot=purpleLoot+regularLoot;
 $("mRaids").textContent=rows.length.toLocaleString();
 $("mPurples").textContent=purples.toLocaleString();
 $("mKits").textContent=kits.toLocaleString();

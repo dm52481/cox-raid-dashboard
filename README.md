@@ -300,3 +300,19 @@ specific receiver recalculates Received, Expected, and +/- exactly as before.
 - Refresh Now is now beside the LIVE status indicator in the top-right header.
 - Columns is right-aligned immediately above the raid table.
 - Columns includes a down-chevron to clearly indicate that it opens a menu.
+
+
+## v33 summary/table/loot update
+
+- "Showing # of # raids" is now left-aligned in the raid-table toolbar,
+  opposite the Columns selector.
+- The top summary now shows Purple, Regular, and Total loot GP values.
+- The Stats Loot grid now combines regular loot and purple uniques.
+- Kits and dust remain excluded from the loot grid.
+- Purple items receive subtle purple styling in the unified grid.
+
+
+## v34 loot-value placement adjustment
+
+- Reverted the top summary to the single Total Loot Value card.
+- Purple / Regular / Total loot values now appear only above the Stats Loot grid.
