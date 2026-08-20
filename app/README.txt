@@ -184,3 +184,17 @@ Aggregate points/hour uses total personal points divided by total raid time,
 which correctly weights raids by duration.
 
 Added to the top summary, Team-size performance, Rolling performance, and CSV.
+
+
+v21 — browser lifetime / automatic shutdown
+-------------------------------------------
+- Each dashboard browser tab gets a unique local session ID.
+- Tabs heartbeat the local server every 8 seconds.
+- Sessions expire after 30 seconds without a heartbeat.
+- The process exits once all previously active tabs have expired.
+- There is a 60-second startup grace period in case the browser fails to open.
+- Multiple dashboard tabs are supported; closing one does not stop the app while
+  another active tab remains.
+- Refresh/navigation does not immediately unregister a tab, avoiding accidental
+  shutdowns during normal page reloads.
+- A Quit Dashboard button immediately requests server shutdown.

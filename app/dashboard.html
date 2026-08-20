@@ -106,6 +106,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .first-notice-actions{display:flex;justify-content:flex-end;margin-top:18px}
 .first-notice-actions button{width:auto;padding:8px 15px}
 
+
+.quit-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:24px;z-index:12000}
+.quit-overlay.open{display:flex}
+.quit-card{width:min(480px,94vw);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center}
+.quit-card h2{margin:0 0 8px}.quit-card p{color:var(--muted)}
+
 @media(min-width:1280px){table{min-width:0}th,td{font-size:13px}.loot{min-width:160px}.specials{min-width:140px}}@media(max-width:1000px){.metrics{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}
 </style>
 </head>
@@ -115,6 +121,7 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 <select id="accountPicker"><option value="">Select account…</option></select>
 </label>
 <button id="changeRoot" type="button">Change .runelite Folder</button>
+<button id="quitDashboard" type="button">Quit Dashboard</button>
 </div></div><div class="live"><span class="dot"></span><span id="liveText">Loading…</span></div></div>
 
 <section class="metrics">
@@ -248,6 +255,14 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
 
 
+
+<div class="quit-overlay" id="quitOverlay">
+  <div class="quit-card">
+    <h2>Dashboard stopped</h2>
+    <p>The local CoX Raid Dashboard process has exited. You can close this browser tab.</p>
+  </div>
+</div>
+
 <div class="first-notice" id="firstNotice" aria-hidden="true">
   <div class="first-notice-card">
     <h2>Before you use CoX Raid Dashboard</h2>
@@ -283,6 +298,51 @@ function showSetup(s){SETUP=s;$('accountList').innerHTML='';$('setupTitle').text
 async function chooseRoot(){const r=await fetch('/api/choose-runelite?ts='+Date.now(),{cache:'no-store'});const s=await r.json();SETUP=s;if(s.cancelled){showSetup(s);return}populateAccountPicker(s);hideSetup();await loadData()}
 async function selectAccount(name){if(!name)return;const r=await fetch('/api/select-account?name='+encodeURIComponent(name),{cache:'no-store'});const s=await r.json();if(!r.ok){alert(s.error||'Unable to select account.');return}SETUP=s;populateAccountPicker(s);await loadData()}
 async function ensureSetup(){const s=await fetchSetup();populateAccountPicker(s);if(!s.noticeAccepted){$("firstNotice").classList.add("open");$("firstNotice").setAttribute("aria-hidden","false");return false}if(s.needsRoot){showSetup(s);return false}return true}
+
+const TAB_SESSION_ID = (
+  window.crypto && crypto.randomUUID
+    ? crypto.randomUUID()
+    : Date.now().toString(36)+"-"+Math.random().toString(36).slice(2)
+);
+
+let heartbeatTimer=null;
+
+async function sendHeartbeat(){
+  try{
+    await fetch("/api/heartbeat?session="+encodeURIComponent(TAB_SESSION_ID)+"&ts="+Date.now(),{
+      cache:"no-store",
+      keepalive:true
+    });
+  }catch(_){}
+}
+
+function startHeartbeat(){
+  if(heartbeatTimer) return;
+  sendHeartbeat();
+  heartbeatTimer=setInterval(sendHeartbeat,8000);
+}
+
+async function quitDashboard(){
+  if(heartbeatTimer){
+    clearInterval(heartbeatTimer);
+    heartbeatTimer=null;
+  }
+
+  $("quitOverlay").classList.add("open");
+
+  try{
+    await fetch("/api/quit?ts="+Date.now(),{
+      cache:"no-store",
+      keepalive:true
+    });
+  }catch(_){}
+}
+
+window.addEventListener("pagehide",()=>{
+  // Do not explicitly unregister: refresh/navigation can fire pagehide.
+  // The server expires this tab naturally if it does not return.
+});
+
 let DATA=[];const $=id=>document.getElementById(id);const state={sortKey:"date",sortDir:-1};const playerLootState={sortKey:"purples",sortDir:-1};let statsPeriod="all";let rollingTeamSize="all";let statsMode="all";
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function fmtNum(n){return Number.isFinite(+n)?Math.round(+n).toLocaleString():"—"}
@@ -591,8 +651,10 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeScreenshot()});
 $("acceptNotice").onclick=async()=>{await fetch("/api/accept-notice?ts="+Date.now(),{cache:"no-store"});$("firstNotice").classList.remove("open");$("firstNotice").setAttribute("aria-hidden","true");await loadData();};$("chooseRoot").onclick=chooseRoot;$("changeRoot").onclick=async()=>showSetup(await fetchSetup());$("accountPicker").onchange=e=>selectAccount(e.target.value);$("setupCancel").onclick=hideSetup;
 
 
+$("quitDashboard").onclick=quitDashboard;
 $("refresh").onclick=loadData;
 $("reset").onclick=()=>{document.querySelectorAll(".filters input").forEach(el=>{if(el.type==="checkbox")el.checked=false;else el.value=""});document.querySelectorAll(".filters select").forEach(el=>el.value="");render()};
 $("csv").onclick=()=>{const rows=filtered(),head=["Date","KC","Team Size","Mode","Raid Time Seconds","Team Points","Personal Points","Personal Points/Hour","Personal %","Deaths","Special Loot","Receiver","Special Value","Regular Value","Regular Loot"];const csv=[head,...rows.map(r=>[new Date(r.date).toISOString(),r.kc,r.teamSize,r.challengeMode?"CM":"Reg",r.raidTime,r.totalPoints,r.personalPoints,Math.round(personalPointsPerHour(r)),r.percentage,r.personalDeaths,(r.specialLootEntries||[]).map(x=>x.name).join("; "),(r.specialLootEntries||[]).map(x=>x.receiver).join("; "),r.specialLootValue,r.regularLootValue,(r.lootList||[]).map(x=>`${x.name} x${x.quantity}`).join("; ")])].map(row=>row.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="filtered_cox_raids.csv";a.click();URL.revokeObjectURL(u)}
+startHeartbeat();
 loadData();
 </script></body></html>

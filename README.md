@@ -28,6 +28,7 @@ The dashboard:
 - stores dashboard preferences under `%LOCALAPPDATA%\CoXRaidDashboard`;
 - does not intentionally upload raid data or screenshots;
 - does not modify RuneLite raid logs or screenshots.
+- exits automatically after all dashboard tabs stop sending local heartbeats.
 
 The first launch displays this local-data behavior before raid data is loaded.
 
@@ -52,6 +53,8 @@ Current functionality includes:
 - local Boss Kills screenshot viewing from Purple History;
 - automatic screenshot-account selection based on the account with the most
   verified matches to raid history.
+- automatic process shutdown about 30 seconds after all dashboard browser tabs are closed;
+- an explicit **Quit Dashboard** button for immediate shutdown.
 
 ## Downloading a release
 

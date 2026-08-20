@@ -7,6 +7,14 @@ from datetime import datetime
 HOST = "127.0.0.1"
 PORT = 8081
 
+HEARTBEAT_TIMEOUT_SECONDS = 30
+HEARTBEAT_STARTUP_GRACE_SECONDS = 60
+ACTIVE_SESSIONS = {}
+ACTIVE_SESSIONS_LOCK = threading.Lock()
+SERVER_STARTED_AT = time.time()
+HTTP_SERVER = None
+
+
 def asset_dir():
     if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
         return Path(sys._MEIPASS)
@@ -814,9 +822,86 @@ def load_raids(skip_screenshot_attach=False):
         "screenshotInfo": screenshot_info,
     }
 
+
+def register_heartbeat(session_id):
+    if not session_id:
+        return
+    with ACTIVE_SESSIONS_LOCK:
+        ACTIVE_SESSIONS[session_id] = time.time()
+
+def prune_and_count_active_sessions():
+    now = time.time()
+    with ACTIVE_SESSIONS_LOCK:
+        stale = [
+            sid for sid, last_seen in ACTIVE_SESSIONS.items()
+            if now - last_seen > HEARTBEAT_TIMEOUT_SECONDS
+        ]
+        for sid in stale:
+            ACTIVE_SESSIONS.pop(sid, None)
+        return len(ACTIVE_SESSIONS)
+
+def request_server_shutdown():
+    server = HTTP_SERVER
+    if server is not None:
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+def heartbeat_watchdog():
+    """
+    Exit after all browser tabs have stopped heartbeating.
+
+    Startup gets a grace period so the browser has time to open and load.
+    After at least one tab has registered, the server shuts down once every
+    session has been stale for HEARTBEAT_TIMEOUT_SECONDS.
+    """
+    has_seen_session = False
+
+    while True:
+        time.sleep(5)
+
+        active = prune_and_count_active_sessions()
+        if active > 0:
+            has_seen_session = True
+            continue
+
+        if has_seen_session:
+            request_server_shutdown()
+            return
+
+        if time.time() - SERVER_STARTED_AT > HEARTBEAT_STARTUP_GRACE_SECONDS:
+            # Browser failed to open or dashboard was never reached.
+            request_server_shutdown()
+            return
+
 class DashboardHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+
+        if parsed.path == "/api/heartbeat":
+            query = urllib.parse.parse_qs(parsed.query)
+            session_id = (query.get("session", [""])[0] or "").strip()
+            register_heartbeat(session_id)
+            body = json.dumps({
+                "ok": True,
+                "activeSessions": prune_and_count_active_sessions(),
+            }).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+
+        if parsed.path == "/api/quit":
+            body = json.dumps({"ok": True}).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            request_server_shutdown()
+            return
 
         if parsed.path == "/api/accept-notice":
             CONFIG["noticeAccepted"] = True
@@ -934,9 +1019,16 @@ if __name__ == "__main__":
         print(f"RuneLite: {state['runeliteRoot'] or 'not configured'}")
         print(f"Account:  {state['account'] or 'not selected'}")
         print(f"Open:    http://{HOST}:{PORT}")
+        print("The app exits automatically after all dashboard tabs are closed.")
         print("Press Ctrl+C to stop.")
+
+    HTTP_SERVER = ThreadingHTTPServer((HOST, PORT), DashboardHandler)
+    threading.Thread(target=heartbeat_watchdog, daemon=True).start()
     threading.Thread(target=open_dashboard_browser, daemon=True).start()
+
     try:
-        ThreadingHTTPServer((HOST, PORT), DashboardHandler).serve_forever()
+        HTTP_SERVER.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        HTTP_SERVER.server_close()
