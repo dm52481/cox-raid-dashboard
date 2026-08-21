@@ -221,6 +221,12 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .loot-grid-values .value{font-size:15px;font-weight:700;margin-top:2px;white-space:nowrap}
 .total-loot-val{color:var(--gold)}
 
+
+.dry-row{padding:1px 0}
+.dry-points{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:3px;color:var(--muted);font-size:12px}
+.dry-points strong{color:var(--text);font-weight:700}
+.dry-sep{color:var(--border)}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -330,20 +336,68 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 
     <div class="preview-panel">
       <h3>Current personal dry streak</h3>
-      <div class="stat-row"><span class="k">Overall</span><span class="v" id="currentDryOverall">—</span></div>
-      <div class="stat-sub" id="currentDryOverallPts">—</div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Overall</span><span class="v" id="currentDryOverallRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="currentDryOverallPersonal">—</strong> personal pts</span>
+          <span class="dry-sep">|</span>
+          <span><strong id="currentDryOverallTeam">—</strong> team pts</span>
+        </div>
+      </div>
+
       <div class="stat-break"></div>
-      <div class="stat-row"><span class="k">Solo</span><span class="v" id="currentDrySolo">—</span></div>
-      <div class="stat-sub" id="currentDrySoloPts">—</div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Non-Solo</span><span class="v" id="currentDryNonSoloRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="currentDryNonSoloPersonal">—</strong> personal pts</span>
+          <span class="dry-sep">|</span>
+          <span><strong id="currentDryNonSoloTeam">—</strong> team pts</span>
+        </div>
+      </div>
+
+      <div class="stat-break"></div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Solo</span><span class="v" id="currentDrySoloRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="currentDrySoloPersonal">—</strong> personal pts</span>
+        </div>
+      </div>
     </div>
 
     <div class="preview-panel">
       <h3>Longest points dry streak</h3>
-      <div class="stat-row"><span class="k">Overall</span><span class="v" id="pointsDryOverall">—</span></div>
-      <div class="stat-sub" id="pointsDryOverallRaids">—</div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Overall</span><span class="v" id="pointsDryOverallRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="pointsDryOverallPersonal">—</strong> personal pts</span>
+          <span class="dry-sep">|</span>
+          <span><strong id="pointsDryOverallTeam">—</strong> team pts</span>
+        </div>
+      </div>
+
       <div class="stat-break"></div>
-      <div class="stat-row"><span class="k">Solo</span><span class="v" id="pointsDrySolo">—</span></div>
-      <div class="stat-sub" id="pointsDrySoloRaids">—</div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Non-Solo</span><span class="v" id="pointsDryNonSoloRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="pointsDryNonSoloPersonal">—</strong> personal pts</span>
+          <span class="dry-sep">|</span>
+          <span><strong id="pointsDryNonSoloTeam">—</strong> team pts</span>
+        </div>
+      </div>
+
+      <div class="stat-break"></div>
+
+      <div class="dry-row">
+        <div class="stat-row"><span class="k">Solo</span><span class="v" id="pointsDrySoloRaids">—</span></div>
+        <div class="dry-points">
+          <span><strong id="pointsDrySoloPersonal">—</strong> personal pts</span>
+        </div>
+      </div>
     </div>
 
     <div class="preview-panel">
@@ -950,17 +1004,29 @@ function renderStats(){
   $("luckOverallDetail").innerHTML=`${eo.toFixed(2)} expected · <span class="${overallDelta>=0?"ahead":"behind"}">${overallDelta>=0?"+":""}${overallDelta.toFixed(2)} ${overallDelta>=0?"ahead":"behind"}</span>`;
   $("luckOverallPoints").textContent=`${fmtNum(tp)} overall points · ${eo?`${(ao/eo*100).toFixed(0)}% expected`:"—"}`;
 
-  const cd=currentDry(rows),cs=currentDry(rows.filter(r=>+r.teamSize===1));
-  $("currentDryOverall").textContent=`${fmtNum(cd.count)} raids`;
-  $("currentDryOverallPts").textContent=`${fmtNum(cd.points)} personal points`;
-  $("currentDrySolo").textContent=`${fmtNum(cs.count)} raids`;
-  $("currentDrySoloPts").textContent=`${fmtNum(cs.points)} personal points`;
+  const cd=currentDry(rows);
+  $("currentDryOverallRaids").textContent=`${fmtNum(cd.raids)} raids`;
+  $("currentDryOverallPersonal").textContent=fmtNum(cd.personalPoints);
+  $("currentDryOverallTeam").textContent=fmtNum(cd.teamPoints);
 
-  const ld=longestPointsDry(rows),ls=longestPointsDry(rows.filter(r=>+r.teamSize===1));
-  $("pointsDryOverall").textContent=`${fmtNum(ld.points)} pts`;
-  $("pointsDryOverallRaids").textContent=`across ${fmtNum(ld.raids)} raids`;
-  $("pointsDrySolo").textContent=`${fmtNum(ls.points)} pts`;
-  $("pointsDrySoloRaids").textContent=`across ${fmtNum(ls.raids)} solo raids`;
+  $("currentDryNonSoloRaids").textContent=`${fmtNum(cd.nonSoloRaids)} raids`;
+  $("currentDryNonSoloPersonal").textContent=fmtNum(cd.nonSoloPersonalPoints);
+  $("currentDryNonSoloTeam").textContent=fmtNum(cd.nonSoloTeamPoints);
+
+  $("currentDrySoloRaids").textContent=`${fmtNum(cd.soloRaids)} raids`;
+  $("currentDrySoloPersonal").textContent=fmtNum(cd.soloPersonalPoints);
+
+  const ld=longestPointsDry(rows);
+  $("pointsDryOverallRaids").textContent=`${fmtNum(ld.raids)} raids`;
+  $("pointsDryOverallPersonal").textContent=fmtNum(ld.personalPoints);
+  $("pointsDryOverallTeam").textContent=fmtNum(ld.teamPoints);
+
+  $("pointsDryNonSoloRaids").textContent=`${fmtNum(ld.nonSoloRaids)} raids`;
+  $("pointsDryNonSoloPersonal").textContent=fmtNum(ld.nonSoloPersonalPoints);
+  $("pointsDryNonSoloTeam").textContent=fmtNum(ld.nonSoloTeamPoints);
+
+  $("pointsDrySoloRaids").textContent=`${fmtNum(ld.soloRaids)} raids`;
+  $("pointsDrySoloPersonal").textContent=fmtNum(ld.soloPersonalPoints);
 
   $("teamPerfBody").innerHTML=[1,2,3,4,5].map(size=>{
     const s=rows.filter(r=>+r.teamSize===size);
@@ -1066,8 +1132,65 @@ function statsRows(){
   if(statsPeriod==="12m") d.setMonth(d.getMonth()-12);
   return rows.filter(r=>(+r.date||0)>=d.getTime());
 }
-function currentDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let count=0,points=0;for(let i=rows.length-1;i>=0;i--){if(raidHasPersonalPurple(rows[i]))break;count++;points+=(+rows[i].personalPoints||0)}return{count,points}}
-function longestPointsDry(records){const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));let cp=0,cr=0,bp=0,br=0;for(const r of rows){if(raidHasPersonalPurple(r)){if(cp>bp){bp=cp;br=cr}cp=0;cr=0}else{cp+=(+r.personalPoints||0);cr++}}if(cp>bp){bp=cp;br=cr}return{points:bp,raids:br}}
+function summarizeDryRows(records){
+  const nonSolo=records.filter(r=>(+r.teamSize||0)!==1);
+  const solo=records.filter(r=>(+r.teamSize||0)===1);
+  const sum=(rows,key)=>rows.reduce((s,r)=>s+(+r[key]||0),0);
+
+  return {
+    raids:records.length,
+    personalPoints:sum(records,"personalPoints"),
+    teamPoints:sum(records,"totalPoints"),
+
+    nonSoloRaids:nonSolo.length,
+    nonSoloPersonalPoints:sum(nonSolo,"personalPoints"),
+    nonSoloTeamPoints:sum(nonSolo,"totalPoints"),
+
+    soloRaids:solo.length,
+    soloPersonalPoints:sum(solo,"personalPoints")
+  };
+}
+
+function currentDry(records){
+  const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));
+  const dry=[];
+
+  for(let i=rows.length-1;i>=0;i--){
+    if(raidHasPersonalPurple(rows[i])) break;
+    dry.unshift(rows[i]);
+  }
+
+  return summarizeDryRows(dry);
+}
+
+function longestPointsDry(records){
+  const rows=[...records].sort((a,b)=>(+a.date||0)-(+b.date||0));
+  let current=[];
+  let best=[];
+  let currentPersonal=0;
+  let bestPersonal=-1;
+
+  const considerCurrent=()=>{
+    if(currentPersonal>bestPersonal){
+      best=[...current];
+      bestPersonal=currentPersonal;
+    }
+  };
+
+  for(const r of rows){
+    if(raidHasPersonalPurple(r)){
+      considerCurrent();
+      current=[];
+      currentPersonal=0;
+    }else{
+      current.push(r);
+      currentPersonal+=(+r.personalPoints||0);
+    }
+  }
+
+  considerCurrent();
+  return summarizeDryRows(best);
+}
 function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num col-pph hidden-col">${fmtNum(personalPointsPerHour(r))}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
 const purples=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="purple").length,0),
 kits=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="kit").length,0),

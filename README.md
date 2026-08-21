@@ -316,3 +316,16 @@ specific receiver recalculates Received, Expected, and +/- exactly as before.
 
 - Reverted the top summary to the single Total Loot Value card.
 - Purple / Regular / Total loot values now appear only above the Stats Loot grid.
+
+
+## v35 dry-streak point breakdown
+
+Both Current Personal Dry Streak and Longest Points Dry Streak now break the
+same dry-streak window into:
+
+- Overall: all personal points and all team points.
+- Non-Solo: personal and team points from team sizes greater than one.
+- Solo: personal points from solo raids only.
+
+The Non-Solo and Solo rows are partitions of the Overall dry streak rather
+than independently calculated streaks.

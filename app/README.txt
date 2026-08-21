@@ -314,3 +314,19 @@ v34 — loot-value placement
 --------------------------
 - Top summary restored to Total Loot Value only.
 - Purple / Regular / Total values moved to the top of the Loot grid.
+
+
+v35 — dry-streak point breakdown
+--------------------------------
+Dry streak boxes now show Overall / Non-Solo / Solo.
+
+Overall:
+  personal points | team points
+
+Non-Solo:
+  personal points | team points
+
+Solo:
+  personal points
+
+Non-Solo and Solo are calculated from the same Overall dry-streak window.
