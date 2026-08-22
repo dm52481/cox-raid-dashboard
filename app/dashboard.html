@@ -227,6 +227,11 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
 .dry-points strong{color:var(--text);font-weight:700}
 .dry-sep{color:var(--border)}
 
+
+.tablewrap{max-height:1100px;overflow:auto}
+.tablewrap thead th{position:sticky;top:0;z-index:3;background:var(--panel)}
+.column-toggle-menu{max-height:420px;overflow-y:auto}
+
 </style>
 </head>
 <body><div class="wrap">
@@ -290,6 +295,8 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
         <div class="best-item"><div class="label">Fastest raid</div><div class="value" id="pbFastest">—</div><div class="stat-sub" id="pbFastestDetail">—</div></div>
         <div class="best-item"><div class="label">Highest personal pts</div><div class="value" id="pbPoints">—</div><div class="stat-sub" id="pbPointsDetail">—</div></div>
         <div class="best-item"><div class="label">Highest pts/hr</div><div class="value" id="pbPph">—</div><div class="stat-sub" id="pbPphDetail">—</div></div>
+        <div class="best-item"><div class="label">Fastest CM</div><div class="value" id="pbFastestCm">—</div><div class="stat-sub" id="pbFastestCmDetail">—</div></div>
+        <div class="best-item"><div class="label">Highest overall team pts</div><div class="value" id="pbTeamPoints">—</div><div class="stat-sub" id="pbTeamPointsDetail">—</div></div>
         
       </div>
     </div>
@@ -479,15 +486,38 @@ th,td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;t
   <span class="column-toggle">
     <button id="columnsBtn" type="button">Columns <span class="columns-chevron" aria-hidden="true">▾</span></button>
     <div class="column-toggle-menu" id="columnMenu">
-      <label><input type="checkbox" data-col-toggle="pph"> Personal pts/hr</label>
+      <label><input type="checkbox" data-col-toggle="date" checked> Date</label>
+      <label><input type="checkbox" data-col-toggle="kc" checked> KC</label>
+      <label><input type="checkbox" data-col-toggle="teamSize" checked> Size</label>
+      <label><input type="checkbox" data-col-toggle="mode" checked> Mode</label>
+      <label><input type="checkbox" data-col-toggle="raidTime" checked> Raid time</label>
+      <label><input type="checkbox" data-col-toggle="totalPoints" checked> Team pts</label>
+      <label><input type="checkbox" data-col-toggle="personalPoints" checked> Personal pts</label>
+      <label><input type="checkbox" data-col-toggle="pph"> Pers. pts/hr</label>
+      <label><input type="checkbox" data-col-toggle="percentage" checked> Personal %</label>
+      <label><input type="checkbox" data-col-toggle="specialLoot" checked> Special loot</label>
+      <label><input type="checkbox" data-col-toggle="receiver" checked> Receiver</label>
+      <label><input type="checkbox" data-col-toggle="specialValue" checked> Special value</label>
+      <label><input type="checkbox" data-col-toggle="regularValue" checked> Regular value</label>
+      <label><input type="checkbox" data-col-toggle="loot" checked> Regular loot</label>
     </div>
   </span>
 </div>
 <div class="tablewrap"><table><thead><tr>
-<th data-key="date">Date</th><th data-key="kc" class="num">KC</th><th data-key="teamSize" class="num">Size</th><th data-key="challengeMode">Mode</th>
-<th data-key="raidTime" class="num">Raid time</th><th data-key="totalPoints" class="num">Team pts</th><th data-key="personalPoints" class="num">Personal pts</th><th class="num col-pph hidden-col">Pers. pts/hr</th>
-<th data-key="percentage" class="num">Personal %</th><th>Special loot</th><th class="receiver">Receiver</th>
-<th data-key="specialLootValue" class="num">Special value</th><th data-key="regularLootValue" class="num">Regular value</th><th>Regular loot</th>
+<th class="col-date" data-key="date">Date</th>
+<th class="col-kc num" data-key="kc">KC</th>
+<th class="col-teamSize num" data-key="teamSize">Size</th>
+<th class="col-mode">Mode</th>
+<th class="col-raidTime num" data-key="raidTime">Raid time</th>
+<th class="col-totalPoints num" data-key="totalPoints">Team pts</th>
+<th class="col-personalPoints num" data-key="personalPoints">Personal pts</th>
+<th class="col-pph num hidden-col">Pers. pts/hr</th>
+<th class="col-percentage num" data-key="percentage">Personal %</th>
+<th class="col-specialLoot">Special loot</th>
+<th class="col-receiver">Receiver</th>
+<th class="col-specialValue num">Special value</th>
+<th class="col-regularValue num">Regular value</th>
+<th class="col-loot">Regular loot</th>
 </tr></thead><tbody id="body"></tbody></table></div>
 </div>
 
@@ -981,6 +1011,9 @@ function renderStats(){
   const fastest=timed.length?[...timed].sort((a,b)=>+a.raidTime-+b.raidTime)[0]:null;
   const highPts=rows.length?[...rows].sort((a,b)=>(+b.personalPoints||0)-(+a.personalPoints||0))[0]:null;
   const highPph=timed.length?[...timed].sort((a,b)=>personalPointsPerHour(b)-personalPointsPerHour(a))[0]:null;
+  const timedCm=timed.filter(r=>!!r.challengeMode);
+  const fastestCm=timedCm.length?[...timedCm].sort((a,b)=>+a.raidTime-+b.raidTime)[0]:null;
+  const highTeamPts=rows.length?[...rows].sort((a,b)=>(+b.totalPoints||0)-(+a.totalPoints||0))[0]:null;
   const pbDetail=r=>r?`KC ${fmtNum(r.kc)} · ${r.teamSize}-man · ${r.challengeMode?"CM":"Reg"}`:"—";
 
   $("pbFastest").textContent=fastest?fmtTime(fastest.raidTime):"—";
@@ -989,6 +1022,10 @@ function renderStats(){
   $("pbPointsDetail").textContent=pbDetail(highPts);
   $("pbPph").textContent=highPph?fmtNum(personalPointsPerHour(highPph)):"—";
   $("pbPphDetail").textContent=pbDetail(highPph);
+  $("pbFastestCm").textContent=fastestCm?fmtTime(fastestCm.raidTime):"—";
+  $("pbFastestCmDetail").textContent=pbDetail(fastestCm);
+  $("pbTeamPoints").textContent=highTeamPts?fmtNum(highTeamPts.totalPoints):"—";
+  $("pbTeamPointsDetail").textContent=pbDetail(highTeamPts);
 
   const pp=rows.reduce((s,r)=>s+(+r.personalPoints||0),0);
   const tp=rows.reduce((s,r)=>s+(+r.totalPoints||0),0);
@@ -1191,7 +1228,7 @@ function longestPointsDry(records){
   considerCurrent();
   return summarizeDryRows(best);
 }
-function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td>${fmtDate(r.date)}</td><td class="num">${fmtNum(r.kc)}</td><td class="num">${fmtNum(r.teamSize)}</td><td><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="num">${fmtTime(r.raidTime)}</td><td class="num">${fmtNum(r.totalPoints)}</td><td class="num">${fmtNum(r.personalPoints)}</td><td class="num col-pph hidden-col">${fmtNum(personalPointsPerHour(r))}</td><td class="num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="specials">${specialHtml(e)}</td><td class="specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="num">${fmtGp(r.specialLootValue)}</td><td class="num">${fmtGp(r.regularLootValue)}</td><td class="loot">${loot}</td></tr>`}).join("");
+function render(){const rows=filtered();$("body").innerHTML=rows.map(r=>{const e=r.specialLootEntries||[],loot=(r.lootList||[]).length?r.lootList.map(x=>`<div>${esc(x.name)} × ${fmtNum(x.quantity)} <span class="muted">(${fmtGp(x.price)})</span></div>`).join(""):'<span class="muted">—</span>';return `<tr><td class="col-date">${fmtDate(r.date)}</td><td class="col-kc num">${fmtNum(r.kc)}</td><td class="col-teamSize num">${fmtNum(r.teamSize)}</td><td class="col-mode"><span class="pill">${r.challengeMode?"CM":"Reg"}</span></td><td class="col-raidTime num">${fmtTime(r.raidTime)}</td><td class="col-totalPoints num">${fmtNum(r.totalPoints)}</td><td class="col-personalPoints num">${fmtNum(r.personalPoints)}</td><td class="col-pph num hidden-col">${fmtNum(personalPointsPerHour(r))}</td><td class="col-percentage num">${Number.isFinite(+r.percentage)?(+r.percentage).toFixed(1)+"%":"—"}</td><td class="col-specialLoot specials">${specialHtml(e)}</td><td class="col-receiver specials receiver" title="${esc((e||[]).map(x=>x.receiver||'').join('; '))}">${receiverHtml(e)}</td><td class="col-specialValue num">${fmtGp(r.specialLootValue)}</td><td class="col-regularValue num">${fmtGp(r.regularLootValue)}</td><td class="col-loot loot">${loot}</td></tr>`}).join("");
 const purples=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="purple").length,0),
 kits=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="kit").length,0),
 dusts=rows.reduce((s,r)=>s+(r.specialLootEntries||[]).filter(x=>x.kind==="dust").length,0),
@@ -1258,9 +1295,13 @@ $("acceptNotice").onclick=async()=>{await fetch("/api/accept-notice?ts="+Date.no
 
 $("quitDashboard").onclick=quitDashboard;
 $("columnsBtn").onclick=e=>{e.stopPropagation();$("columnMenu").classList.toggle("open")};
-document.querySelectorAll("[data-col-toggle]").forEach(cb=>cb.addEventListener("change",()=>{
+function applyColumnVisibility(cb){
   document.querySelectorAll(".col-"+cb.dataset.colToggle).forEach(el=>el.classList.toggle("hidden-col",!cb.checked));
-}));
+}
+document.querySelectorAll("[data-col-toggle]").forEach(cb=>{
+  applyColumnVisibility(cb);
+  cb.addEventListener("change",()=>applyColumnVisibility(cb));
+});
 document.addEventListener("click",e=>{if(!e.target.closest(".column-toggle"))$("columnMenu").classList.remove("open")});
 
 $("purpleReceiverSelect").addEventListener("change",()=>{

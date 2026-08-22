@@ -329,3 +329,18 @@ same dry-streak window into:
 
 The Non-Solo and Solo rows are partitions of the Overall dry streak rather
 than independently calculated streaks.
+
+
+## v36 raid-table controls
+
+- Main raid table shows about 25 rows before vertical scrolling.
+- Header stays sticky while scrolling.
+- All raid table columns are independently toggleable.
+- Personal pts/hr remains off by default.
+
+
+## v37 Personal Bests update
+
+- Added Fastest CM raid time.
+- Added Highest overall team points in a single raid.
+- Both respect the active Stats filters.

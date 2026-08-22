@@ -330,3 +330,16 @@ Solo:
   personal points
 
 Non-Solo and Solo are calculated from the same Overall dry-streak window.
+
+
+v36 — raid-table controls
+-------------------------
+- About 25 visible rows before scrolling.
+- Sticky table header.
+- All columns toggleable.
+
+
+v37 — Personal Bests
+--------------------
+- Added Fastest CM.
+- Added Highest overall team pts in one raid.
